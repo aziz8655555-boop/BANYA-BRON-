@@ -88,43 +88,51 @@ fun BanyaApp() {
         page = 1
     }
 
-    Column(Modifier.fillMaxSize().background(dark).padding(horizontal = 14.dp)) {
-        Spacer(Modifier.height(16.dp))
-        Text("♛ БАНЯ БРОН", modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center, color = gold, fontWeight = FontWeight.Bold, fontSize = 29.sp)
-        Text("16:00–23:00 • $status", modifier = Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 16.dp),
-            textAlign = TextAlign.Center, color = if (online) green else red, fontSize = 14.sp)
+    WoodBackground {
+      Column(Modifier.fillMaxSize().padding(horizontal = 12.dp)) {
+        LuxuryHeader(online, status)
         when (page) {
             0 -> {
-                LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    items((1..6).toList()) { r ->
-                        val occupied = bookings.any {
-                            it.room == r && it.date == today.format(fmt) &&
-                            !now.isBefore(LocalTime.parse(it.start)) &&
-                            now.isBefore(LocalTime.parse(it.end))
-                        }
-                        Column(Modifier.background(panel, RoundedCornerShape(18.dp))
-                            .border(1.dp, gold, RoundedCornerShape(18.dp)).padding(12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("$r-ХОНА", color = gold, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.height(14.dp))
-                            Text(if (!online) "Текширилмоқда" else if (occupied) "Банд" else "Бўш",
-                                color = if (!online) gold else if (occupied) red else green,
-                                fontSize = if (online) 22.sp else 13.sp)
-                            Spacer(Modifier.height(14.dp))
-                            Button(enabled = online, onClick = { openForm(targetRoom = r) },
-                                colors = ButtonDefaults.buttonColors(containerColor = gold)) {
-                                Text("Брон қилиш", color = dark, fontSize = 12.sp)
+                Column(Modifier.weight(1f)) {
+                    LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        contentPadding = PaddingValues(vertical = 5.dp)) {
+                        items((1..6).toList()) { r ->
+                            val current = bookings.firstOrNull {
+                                it.room == r && it.date == today.format(fmt) &&
+                                !now.isBefore(LocalTime.parse(it.start)) &&
+                                now.isBefore(LocalTime.parse(it.end))
+                            }
+                            LuxuryPanel(Modifier.fillMaxWidth().height(164.dp)) {
+                                Text("$r-ХОНА", modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.Center, color = LuxGold,
+                                    fontSize = 23.sp, fontWeight = FontWeight.Black)
+                                Spacer(Modifier.height(12.dp))
+                                Text(if (!online) "Текширилмоқда" else if (current != null) "Банд" else "Бўш",
+                                    modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
+                                    color = if (!online) LuxGold else if (current != null) LuxRed else LuxGreen,
+                                    fontSize = if (online) 23.sp else 13.sp, fontWeight = FontWeight.Bold)
+                                if (current != null) {
+                                    Text("${current.start}–${current.end}", color = Color.White,
+                                        modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, fontSize = 12.sp)
+                                }
+                                Spacer(Modifier.weight(1f))
+                                LuxuryButton("Брон қилиш", { openForm(targetRoom = r) },
+                                    Modifier.fillMaxWidth(), enabled = online)
                             }
                         }
                     }
+                    LuxuryButton("▦  Брон қилиш", { openForm() }, Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                        enabled = online)
                 }
             }
             1 -> {
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                    Text(if (editing == null) "Брон қилиш" else "Бронни таҳрирлаш", color = gold, fontSize = 24.sp)
+                    LuxuryPanel(Modifier.fillMaxWidth()) {
+                        Text(if (editing == null) "▦  Брон қилиш" else "✎  Бронни таҳрирлаш",
+                            color = LuxGold, fontSize = 23.sp, fontWeight = FontWeight.Bold)
+                    }
                     Text("Хона", color = Color.White, modifier = Modifier.padding(top = 10.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         (1..6).forEach { r ->
@@ -162,9 +170,11 @@ fun BanyaApp() {
                             }
                         }
                     }
-                    Text("Жами: ${duration * 50} тг", color = gold, fontSize = 23.sp,
-                        modifier = Modifier.padding(vertical = 14.dp))
-                    Button(enabled = online && !busy, onClick = {
+                    LuxuryPanel(Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
+                        Text("◉  Жами: ${duration * 50} тг", color = LuxGold,
+                            fontSize = 23.sp, fontWeight = FontWeight.Bold)
+                    }
+                    LuxuryButton(if (editing == null) "✓  Бронни сақлаш" else "✓  Ўзгаришни сақлаш", enabled = online && !busy, positive = true, modifier = Modifier.fillMaxWidth(), onClick = {
                         val date = day.format(fmt)
                         val time = "%02d:%02d".format(minute / 60, minute % 60)
                         val proposed = Booking(room, date, time, duration, name.trim())
@@ -186,17 +196,13 @@ fun BanyaApp() {
                                 "Сервер тасдиғи кутилмоқда..."
                             }
                         }
-                    }, modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = gold)) {
-                        Text(if (editing == null) "Бронни сақлаш" else "Ўзгаришни сақлаш", color = dark)
-                    }
+                    })
                     if (notice.isNotBlank()) Text(notice, color = gold, modifier = Modifier.padding(vertical = 10.dp))
                     Text("Сақланган бронлар", color = gold, fontSize = 20.sp,
                         modifier = Modifier.padding(top = 12.dp, bottom = 6.dp))
                     bookings.sortedWith(compareBy<Booking> { it.date }.thenBy { it.start })
                         .forEach { b ->
-                            Column(Modifier.fillMaxWidth().padding(vertical = 5.dp)
-                                .background(panel, RoundedCornerShape(12.dp)).padding(10.dp)) {
+                            LuxuryPanel(Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
                                 Text("${b.date} • ${b.room}-хона • ${b.start}–${b.end}",
                                     color = gold, fontWeight = FontWeight.Bold)
                                 Text("${b.name} • ${b.price} тг", color = Color.White)
@@ -214,11 +220,27 @@ fun BanyaApp() {
             }
             else -> {
                 Column(Modifier.weight(1f)) {
-                    Text("Созламалар", color = gold, fontSize = 24.sp)
-                    Text("Иш вақти: 16:00–23:00", color = Color.White)
-                    Text("1 соат — 3000 тг", color = Color.White)
-                    Text("1,5 соат — 4500 тг", color = Color.White)
-                    Text("2 соат — 6000 тг", color = Color.White)
+                    LuxuryPanel(Modifier.fillMaxWidth()) {
+                        Text("⚙  Созламалар", color = LuxGold, fontSize = 24.sp)
+                    }
+                    Spacer(Modifier.height(14.dp))
+                    LuxuryPanel(Modifier.fillMaxWidth()) {
+                        Text("◷  Иш вақти", color = LuxGold, fontSize = 20.sp)
+                        Text("16:00 – 23:00", color = Color.White, fontSize = 18.sp)
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    LuxuryPanel(Modifier.fillMaxWidth()) {
+                        Text("◉  Тарифлар", color = LuxGold, fontSize = 20.sp)
+                        Text("1 соат                  3 000 тг", color = Color.White)
+                        Text("1,5 соат               4 500 тг", color = Color.White)
+                        Text("2 соат                  6 000 тг", color = Color.White)
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    LuxuryPanel(Modifier.fillMaxWidth()) {
+                        Text("▣  Дастур", color = LuxGold, fontSize = 20.sp)
+                        Text("Firebase: $status", color = if (online) LuxGreen else LuxGold)
+                        Text("6 та хона • Икки телефон • 3D версия", color = Color.White)
+                    }
                     Spacer(Modifier.height(20.dp))
                     TextButton(onClick = { FirebaseAuth.getInstance().signOut() }) {
                         Text("Аккаунтдан чиқиш", color = gold)
@@ -227,13 +249,8 @@ fun BanyaApp() {
                 }
             }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            listOf("Асосий", "Брон қилиш", "Созламалар").forEachIndexed { i, title ->
-                TextButton(onClick = { if (i == 1) openForm() else page = i }) {
-                    Text(title, color = if (page == i) gold else Color.White, fontSize = 12.sp)
-                }
-            }
-        }
+        LuxuryNav(page) { i -> if (i == 1) openForm() else page = i }
+      }
     }
 
     deleting?.let { b ->
