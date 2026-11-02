@@ -302,60 +302,71 @@ fun BanyaApp() {
                         SmallControl("❯") { occupancyDay = occupancyDay.plusDays(1) }
                         SmallControl("Бугун") { occupancyDay = today }
                     }
-                    Text("✓ Бўш     × Банд     ◷ Соатлар бўйича жадвал",
-                        color = Color.White, modifier = Modifier.padding(vertical = 12.dp))
+                    Text("✓ Бўш   × Банд   • Соатлик жадвал",
+                        color = Color.White, fontSize = 12.sp, modifier = Modifier.padding(vertical = 5.dp))
                     val selectedDate = occupancyDay.format(fmt)
-                    Column(Modifier.horizontalScroll(rememberScrollState())) {
-                        Row {
-                            Box(Modifier.width(82.dp).height(38.dp), contentAlignment = Alignment.Center) {
-                                Text("Хона", color = LuxGold)
-                            }
-                            (0..9).forEach { index ->
-                                val m = 900 + index * 60
-                                Box(Modifier.width(62.dp).height(38.dp), contentAlignment = Alignment.Center) {
-                                    Text("%02d:%02d".format(m / 60 % 24, m % 60), color = LuxGold, fontSize = 12.sp)
-                                }
-                            }
-                        }
-                        (1..6).forEach { r ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(Modifier.width(82.dp).height(46.dp), contentAlignment = Alignment.Center) {
-                                    Text("$r-хона", color = LuxGold, fontSize = 13.sp)
+                    BoxWithConstraints(Modifier.fillMaxWidth()) {
+                        // All ten hourly columns and six rooms fit the available screen width.
+                        val roomWidth = maxWidth * 0.205f
+                        val hourWidth = (maxWidth - roomWidth) / 10
+                        Column(Modifier.fillMaxWidth()) {
+                            Row {
+                                Box(Modifier.width(roomWidth).height(31.dp),
+                                    contentAlignment = Alignment.Center) {
+                                    Text("Хона", color = LuxGold, fontSize = 12.sp)
                                 }
                                 (0..9).forEach { index ->
                                     val m = 900 + index * 60
-                                    val existing = bookings.firstOrNull { b ->
-                                        b.room == r && b.date == selectedDate &&
-                                        runCatching {
-                                            val start = LocalTime.parse(b.start).toSecondOfDay() / 60
-                                            m < start + b.minutes && m + 60 > start
-                                        }.getOrDefault(false)
+                                    Box(Modifier.width(hourWidth).height(31.dp),
+                                        contentAlignment = Alignment.Center) {
+                                        Text("%02d".format((m / 60) % 24),
+                                            color = LuxGold, fontSize = 10.sp)
                                     }
-                                    Box(Modifier.padding(2.dp).width(58.dp).height(40.dp)
-                                        .background(if (existing == null) Color(0xFF087E2E) else Color(0xFFB91F1B),
-                                            RoundedCornerShape(8.dp))
-                                        .border(1.dp, LuxGold, RoundedCornerShape(8.dp))
-                                        .clickable(enabled = online) {
-                                            if (existing != null) selectedBooking = existing
-                                            else {
-                                                openForm(targetRoom = r)
-                                                day = occupancyDay
-                                                minute = m.coerceIn(960, 22 * 60 + 30)
-                                            }
-                                        }, contentAlignment = Alignment.Center) {
-                                        Text(if (existing == null) "✓" else "×", color = Color.White,
-                                            fontSize = 21.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                            (1..6).forEach { r ->
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(Modifier.width(roomWidth).height(43.dp),
+                                        contentAlignment = Alignment.Center) {
+                                        Text("$r-хона", color = LuxGold, fontSize = 12.sp)
+                                    }
+                                    (0..9).forEach { index ->
+                                        val m = 900 + index * 60
+                                        val existing = bookings.firstOrNull { b ->
+                                            b.room == r && b.date == selectedDate &&
+                                                runCatching {
+                                                    val start = LocalTime.parse(b.start).toSecondOfDay() / 60
+                                                    m < start + b.minutes && m + 60 > start
+                                                }.getOrDefault(false)
+                                        }
+                                        Box(Modifier.padding(1.dp).width(hourWidth - 2.dp).height(36.dp)
+                                            .background(
+                                                if (existing == null) Color(0xFF087E2E) else Color(0xFFB91F1B),
+                                                RoundedCornerShape(6.dp))
+                                            .border(0.7.dp, LuxGold, RoundedCornerShape(6.dp))
+                                            .clickable(enabled = online) {
+                                                if (existing != null) selectedBooking = existing
+                                                else {
+                                                    openForm(targetRoom = r)
+                                                    day = occupancyDay
+                                                    minute = m.coerceIn(960, 22 * 60 + 30)
+                                                }
+                                            }, contentAlignment = Alignment.Center) {
+                                            Text(if (existing == null) "✓" else "×",
+                                                color = Color.White, fontSize = 14.sp,
+                                                fontWeight = FontWeight.Bold)
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(8.dp))
                     LuxuryPanel(Modifier.fillMaxWidth()) {
                         Text("Бўш вақтни босинг — брон қилиш ойнаси очилади.",
-                            color = Color.White)
+                            color = Color.White, fontSize = 12.sp)
                         Text("Банд вақтни босинг — брон маълумотлари кўринади.",
-                            color = Color.White)
+                            color = Color.White, fontSize = 12.sp)
                     }
                     Spacer(Modifier.weight(1f))
                 }
