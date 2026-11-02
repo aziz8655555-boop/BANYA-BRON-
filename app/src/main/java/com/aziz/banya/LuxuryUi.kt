@@ -21,12 +21,12 @@ val LuxGold = Color(0xFFF8C85B)
 val LuxDark = Color(0xFF100C09)
 val LuxGreen = Color(0xFF18C64D)
 val LuxRed = Color(0xFFE42E2A)
-private val GoldBrush = Brush.verticalGradient(listOf(Color(0xFFFFF1AD), Color(0xFFE3A92C), Color(0xFF9B5A13)))
+private val GoldBrush = Brush.verticalGradient(listOf(Color(0xFFFFFFBE), Color(0xFFF9BF32), Color(0xFF995004)))
 
 @Composable
 fun WoodBackground(content: @Composable BoxScope.() -> Unit) {
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(
-        listOf(Color(0xFF090807), Color(0xFF271509), Color(0xFF130C08), Color(0xFF321A0B), Color(0xFF100B08))
+        listOf(Color(0xFF070B12), Color(0xFF281204), Color(0xFF3E1C08), Color(0xFF251105), Color(0xFF090A10))
     ))) {
         Canvas(Modifier.fillMaxSize()) {
             val plank = size.width / 6f
@@ -48,7 +48,7 @@ fun WoodBackground(content: @Composable BoxScope.() -> Unit) {
 fun LuxuryPanel(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier.clip(RoundedCornerShape(18.dp))
-            .background(Brush.verticalGradient(listOf(Color(0xFF41270F), Color(0xFF100D0B), Color(0xFF28170A))))
+            .background(Brush.verticalGradient(listOf(Color(0xFF08385D), Color(0xFF000A18), Color(0xFF00101E))))
             .border(1.5.dp, GoldBrush, RoundedCornerShape(18.dp))
             .padding(12.dp),
         content = content
@@ -86,13 +86,13 @@ fun LuxuryHeader(online: Boolean, status: String) {
 
 @Composable
 fun LuxuryNav(selected: Int, onSelect: (Int) -> Unit) {
-    Row(Modifier.fillMaxWidth().background(Color(0xF20C0A09))
+    Row(Modifier.fillMaxWidth().background(Color(0xF0001326))
         .border(1.dp, Color(0xFFB58330), RoundedCornerShape(12.dp))
         .padding(vertical = 5.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
         listOf("⌂" to "Асосий", "◷" to "Брон қилиш", "⚙" to "Созламалар")
             .forEachIndexed { i, item ->
                 Column(Modifier.weight(1f).clip(RoundedCornerShape(12.dp))
-                    .background(if (selected == i) Color(0xFF5C3713) else Color.Transparent)
+                    .background(if (selected == i) Color(0xFF99580A) else Color.Transparent)
                     .clickable { onSelect(i) }.padding(5.dp),
                     horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(item.first, color = if (selected == i) LuxGold else Color.White, fontSize = 25.sp)
