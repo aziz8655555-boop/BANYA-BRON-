@@ -60,7 +60,7 @@ private fun saveBookings(context: Context, bookings: List<Booking>) {
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { BanyaApp(this) }
+        setContent { AuthGate { BanyaApp(this) } }
     }
 }
 
