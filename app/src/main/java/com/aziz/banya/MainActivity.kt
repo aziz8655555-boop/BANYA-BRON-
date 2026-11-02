@@ -6,6 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -57,6 +59,8 @@ fun BanyaApp() {
     var name by remember { mutableStateOf("") }
     var editing by remember { mutableStateOf<Booking?>(null) }
     var deleting by remember { mutableStateOf<Booking?>(null) }
+    var selectedBooking by remember { mutableStateOf<Booking?>(null) }
+    var occupancyDay by remember { mutableStateOf(LocalDate.now()) }
     var busy by remember { mutableStateOf(false) }
     var notice by remember { mutableStateOf("") }
     val today = LocalDate.now()
@@ -89,7 +93,7 @@ fun BanyaApp() {
     }
 
     WoodBackground {
-      Column(Modifier.fillMaxSize().padding(horizontal = 12.dp)) {
+      Column(Modifier.fillMaxSize().navigationBarsPadding().padding(horizontal = 12.dp)) {
         LuxuryHeader(online, status)
         when (page) {
             0 -> {
@@ -123,8 +127,10 @@ fun BanyaApp() {
                             }
                         }
                     }
-                    LuxuryButton("▦  Брон қилиш", { openForm() }, Modifier.fillMaxWidth().padding(vertical = 10.dp),
-                        enabled = online)
+                    LuxuryButton("▦  Брон қилиш", { openForm() }, Modifier.fillMaxWidth().padding(top = 8.dp), enabled = online)
+                    Spacer(Modifier.height(7.dp))
+                    LuxuryButton("◷  Умумий бандлик", { occupancyDay = today; page = 3 },
+                        Modifier.fillMaxWidth().padding(bottom = 7.dp), enabled = online)
                 }
             }
             1 -> {
@@ -218,7 +224,7 @@ fun BanyaApp() {
                         }
                 }
             }
-            else -> {
+            2 -> {
                 Column(Modifier.weight(1f)) {
                     LuxuryPanel(Modifier.fillMaxWidth()) {
                         Text("⚙  Созламалар", color = LuxGold, fontSize = 24.sp)
@@ -248,11 +254,106 @@ fun BanyaApp() {
                     Spacer(Modifier.weight(1f))
                 }
             }
+            3 -> {
+                Column(Modifier.weight(1f)) {
+                    LuxuryPanel(Modifier.fillMaxWidth()) {
+                        Text("▦  Умумий бандлик", color = LuxGold,
+                            fontSize = 23.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        SmallControl("❮") { occupancyDay = occupancyDay.minusDays(1) }
+                        Text(occupancyDay.format(fmt), modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center, color = LuxGold, fontSize = 19.sp)
+                        SmallControl("❯") { occupancyDay = occupancyDay.plusDays(1) }
+                    }
+                    Text("● Бўш     ● Банд     • 30 дақиқалик жадвал",
+                        color = Color.White, modifier = Modifier.padding(vertical = 12.dp))
+                    val selectedDate = occupancyDay.format(fmt)
+                    Column(Modifier.horizontalScroll(rememberScrollState())) {
+                        Row {
+                            Box(Modifier.width(82.dp).height(38.dp), contentAlignment = Alignment.Center) {
+                                Text("Хона", color = LuxGold)
+                            }
+                            (0 until 14).forEach { index ->
+                                val m = 960 + index * 30
+                                Box(Modifier.width(62.dp).height(38.dp), contentAlignment = Alignment.Center) {
+                                    Text("%02d:%02d".format(m / 60, m % 60), color = LuxGold, fontSize = 12.sp)
+                                }
+                            }
+                        }
+                        (1..6).forEach { r ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(Modifier.width(82.dp).height(46.dp), contentAlignment = Alignment.Center) {
+                                    Text("$r-хона", color = LuxGold, fontSize = 13.sp)
+                                }
+                                (0 until 14).forEach { index ->
+                                    val m = 960 + index * 30
+                                    val existing = bookings.firstOrNull { b ->
+                                        b.room == r && b.date == selectedDate &&
+                                        runCatching {
+                                            val start = LocalTime.parse(b.start).toSecondOfDay() / 60
+                                            m >= start && m < start + b.minutes
+                                        }.getOrDefault(false)
+                                    }
+                                    Box(Modifier.padding(2.dp).width(58.dp).height(40.dp)
+                                        .background(if (existing == null) Color(0xFF087E2E) else Color(0xFFB91F1B),
+                                            RoundedCornerShape(8.dp))
+                                        .border(1.dp, LuxGold, RoundedCornerShape(8.dp))
+                                        .clickable(enabled = online) {
+                                            if (existing != null) selectedBooking = existing
+                                            else {
+                                                openForm(targetRoom = r)
+                                                day = occupancyDay
+                                                minute = m
+                                            }
+                                        }, contentAlignment = Alignment.Center) {
+                                        Text(if (existing == null) "✓" else "×", color = Color.White,
+                                            fontSize = 21.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    LuxuryPanel(Modifier.fillMaxWidth()) {
+                        Text("Бўш вақтни босинг — брон қилиш ойнаси очилади.",
+                            color = Color.White)
+                        Text("Банд вақтни босинг — брон маълумотлари кўринади.",
+                            color = Color.White)
+                    }
+                    Spacer(Modifier.weight(1f))
+                }
+            }
         }
-        LuxuryNav(page) { i -> if (i == 1) openForm() else page = i }
+LuxuryNav(if (page == 3) 0 else page) { i -> if (i == 1) openForm() else page = i }
       }
     }
 
+    selectedBooking?.let { b ->
+        AlertDialog(onDismissRequest = { selectedBooking = null },
+            title = { Text("Брон маълумоти", color = LuxGold) },
+            text = {
+                Column {
+                    Text("${b.room}-хона • ${b.date}")
+                    Text("Мижоз: ${b.name}")
+                    Text("Вақт: ${b.start}–${b.end}")
+                    Text("Давомийлиги: ${b.minutes} дақиқа")
+                    Text("Нарх: ${b.price} тг")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { selectedBooking = null; openForm(b) }) {
+                    Text("Таҳрирлаш")
+                }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = { selectedBooking = null; deleting = b }) { Text("Ўчириш") }
+                    TextButton(onClick = { selectedBooking = null }) { Text("Ёпиш") }
+                }
+            })
+    }
     deleting?.let { b ->
         AlertDialog(onDismissRequest = { if (!busy) deleting = null },
             title = { Text("Бронни ўчириш?") },
