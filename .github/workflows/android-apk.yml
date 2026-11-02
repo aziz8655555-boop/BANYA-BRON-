@@ -38,13 +38,13 @@ jobs:
 
       - name: Check Firebase configuration secret
         env:
-          FIREBASE_CONFIG_B64: ${{ secrets.FIREBASE_CONFIG_B64 }}
+          FIREBASE_CONFIG_JSON: ${{ secrets.FIREBASE_CONFIG_JSON }}
         run: |
-          if [ -z "$FIREBASE_CONFIG_B64" ]; then
-            echo "::error::Set FIREBASE_CONFIG_B64 in repository Actions secrets."
+          if [ -z "$FIREBASE_CONFIG_JSON" ]; then
+            echo "::error::Set FIREBASE_CONFIG_JSON in repository Actions secrets."
             exit 1
           fi
-          printf '%s' "$FIREBASE_CONFIG_B64" | base64 --decode > app/google-services.json
+          printf '%s' "$FIREBASE_CONFIG_JSON" > app/google-services.json
           python3 - <<'PY'
           import json
           with open('app/google-services.json') as f:
