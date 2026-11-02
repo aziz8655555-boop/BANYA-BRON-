@@ -11,8 +11,8 @@ android {
         applicationId = "com.aziz.banya"
         minSdk = 24
         targetSdk = 35
-        versionCode = 10
-        versionName = "2.1-icon-fix"
+        versionCode = 11
+        versionName = "2.2-icon-adaptive"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
