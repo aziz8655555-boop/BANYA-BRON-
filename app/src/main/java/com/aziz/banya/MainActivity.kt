@@ -97,40 +97,11 @@ fun BanyaApp() {
         LuxuryHeader(online, status)
         when (page) {
             0 -> {
-                Column(Modifier.weight(1f)) {
-                    LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.weight(1f),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                        contentPadding = PaddingValues(vertical = 5.dp)) {
-                        items((1..6).toList()) { r ->
-                            val current = bookings.firstOrNull {
-                                it.room == r && it.date == today.format(fmt) &&
-                                !now.isBefore(LocalTime.parse(it.start)) &&
-                                now.isBefore(LocalTime.parse(it.end))
-                            }
-                            LuxuryPanel(Modifier.fillMaxWidth().height(164.dp)) {
-                                Text("$r-ХОНА", modifier = Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Center, color = LuxGold,
-                                    fontSize = 23.sp, fontWeight = FontWeight.Black)
-                                Spacer(Modifier.height(12.dp))
-                                Text(if (!online) "Текширилмоқда" else if (current != null) "Банд" else "Бўш",
-                                    modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
-                                    color = if (!online) LuxGold else if (current != null) LuxRed else LuxGreen,
-                                    fontSize = if (online) 23.sp else 13.sp, fontWeight = FontWeight.Bold)
-                                if (current != null) {
-                                    Text("${current.start}–${current.end}", color = Color.White,
-                                        modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, fontSize = 12.sp)
-                                }
-                                Spacer(Modifier.weight(1f))
-                                LuxuryButton("Брон қилиш", { openForm(targetRoom = r) },
-                                    Modifier.fillMaxWidth(), enabled = online)
-                            }
-                        }
-                    }
-                    LuxuryButton("▦  Брон қилиш", { openForm() }, Modifier.fillMaxWidth().padding(top = 8.dp), enabled = online)
-                    Spacer(Modifier.height(7.dp))
-                    LuxuryButton("◷  Умумий бандлик", { occupancyDay = today; page = 3 },
-                        Modifier.fillMaxWidth().padding(bottom = 7.dp), enabled = online)
+                Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    LuxuryButton("◷  Умумий бандлик", {
+                        occupancyDay = today
+                        page = 3
+                    }, Modifier.fillMaxWidth().height(120.dp), enabled = online)
                 }
             }
             1 -> {
@@ -148,25 +119,37 @@ fun BanyaApp() {
                             }
                         }
                     }
-                    Text("Сана", color = Color.White, modifier = Modifier.padding(top = 12.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        SmallControl("−") { day = day.minusDays(1) }
-                        Text(day.format(fmt), color = gold, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                        SmallControl("+") { day = day.plusDays(1) }
+                    LuxuryPanel(Modifier.fillMaxWidth().padding(top = 12.dp)) {
+                        Text("◷  Бошланиш вақти", color = LuxGold, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            SmallControl("−1 соат") {
+                                minute = (minute - 60).coerceAtLeast(16 * 60)
+                            }
+                            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                                SmallControl("⌃") {
+                                    minute = (minute + 30).coerceAtMost(22 * 60 + 30)
+                                }
+                                Text("%02d:%02d".format(minute / 60, minute % 60),
+                                    color = LuxGold, fontSize = 27.sp, fontWeight = FontWeight.Black)
+                                SmallControl("⌄") {
+                                    minute = (minute - 30).coerceAtLeast(16 * 60)
+                                }
+                            }
+                            SmallControl("+1 соат") {
+                                minute = (minute + 60).coerceAtMost(22 * 60 + 30)
+                            }
+                        }
                     }
-                    Text("Бошланиш вақти", color = Color.White, modifier = Modifier.padding(top = 12.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        SmallControl("−30") { minute = (minute - 30).coerceAtLeast(16 * 60) }
-                        Text("%02d:%02d".format(minute / 60, minute % 60),
-                            color = gold, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 21.sp)
-                        SmallControl("+30") { minute = (minute + 30).coerceAtMost(22 * 60 + 30) }
+                    Spacer(Modifier.height(12.dp))
+                    LuxuryPanel(Modifier.fillMaxWidth()) {
+                        OutlinedTextField(value = name, onValueChange = { name = it },
+                            placeholder = { Text("Мижоз исмини киритинг...", color = Color.LightGray) },
+                            singleLine = true, textStyle = androidx.compose.ui.text.TextStyle(fontSize = 21.sp),
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 76.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.White, unfocusedTextColor = Color.White,
+                                focusedBorderColor = LuxGold, unfocusedBorderColor = LuxGold, cursorColor = LuxGold))
                     }
-                    Text("Мижоз исми", color = Color.White, modifier = Modifier.padding(top = 12.dp))
-                    OutlinedTextField(value = name, onValueChange = { name = it }, singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White, unfocusedTextColor = Color.White,
-                            focusedBorderColor = gold, unfocusedBorderColor = gold, cursorColor = gold))
                     Text("Давомийлиги", color = Color.White, modifier = Modifier.padding(top = 12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         listOf(60 to "1 соат", 90 to "1,5 соат", 120 to "2 соат").forEach { (m, title) ->
@@ -266,8 +249,9 @@ fun BanyaApp() {
                         Text(occupancyDay.format(fmt), modifier = Modifier.weight(1f),
                             textAlign = TextAlign.Center, color = LuxGold, fontSize = 19.sp)
                         SmallControl("❯") { occupancyDay = occupancyDay.plusDays(1) }
+                        SmallControl("Бугун") { occupancyDay = today }
                     }
-                    Text("● Бўш     ● Банд     • 30 дақиқалик жадвал",
+                    Text("✓ Бўш     × Банд     ◷ Соатлар бўйича жадвал",
                         color = Color.White, modifier = Modifier.padding(vertical = 12.dp))
                     val selectedDate = occupancyDay.format(fmt)
                     Column(Modifier.horizontalScroll(rememberScrollState())) {
@@ -275,10 +259,10 @@ fun BanyaApp() {
                             Box(Modifier.width(82.dp).height(38.dp), contentAlignment = Alignment.Center) {
                                 Text("Хона", color = LuxGold)
                             }
-                            (0 until 14).forEach { index ->
-                                val m = 960 + index * 30
+                            (0..9).forEach { index ->
+                                val m = 900 + index * 60
                                 Box(Modifier.width(62.dp).height(38.dp), contentAlignment = Alignment.Center) {
-                                    Text("%02d:%02d".format(m / 60, m % 60), color = LuxGold, fontSize = 12.sp)
+                                    Text("%02d:%02d".format(m / 60 % 24, m % 60), color = LuxGold, fontSize = 12.sp)
                                 }
                             }
                         }
@@ -287,13 +271,13 @@ fun BanyaApp() {
                                 Box(Modifier.width(82.dp).height(46.dp), contentAlignment = Alignment.Center) {
                                     Text("$r-хона", color = LuxGold, fontSize = 13.sp)
                                 }
-                                (0 until 14).forEach { index ->
-                                    val m = 960 + index * 30
+                                (0..9).forEach { index ->
+                                    val m = 900 + index * 60
                                     val existing = bookings.firstOrNull { b ->
                                         b.room == r && b.date == selectedDate &&
                                         runCatching {
                                             val start = LocalTime.parse(b.start).toSecondOfDay() / 60
-                                            m >= start && m < start + b.minutes
+                                            m < start + b.minutes && m + 60 > start
                                         }.getOrDefault(false)
                                     }
                                     Box(Modifier.padding(2.dp).width(58.dp).height(40.dp)
@@ -305,7 +289,7 @@ fun BanyaApp() {
                                             else {
                                                 openForm(targetRoom = r)
                                                 day = occupancyDay
-                                                minute = m
+                                                minute = m.coerceIn(960, 22 * 60 + 30)
                                             }
                                         }, contentAlignment = Alignment.Center) {
                                         Text(if (existing == null) "✓" else "×", color = Color.White,
