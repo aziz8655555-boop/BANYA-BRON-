@@ -68,7 +68,25 @@ class MainActivity : ComponentActivity() {
 fun BanyaApp(context: Context) {
     var page by remember { mutableIntStateOf(0) }
     var selectedRoom by remember { mutableIntStateOf(1) }
-    val bookings = remember { mutableStateListOf<Booking>().also { it.addAll(loadBookings(context)) } }
+    val bookings = remember { mutableStateListOf<Booking>() }
+    val cloud = remember { CloudBookings() }
+    var serverReady by remember { mutableStateOf(false) }
+    var saving by remember { mutableStateOf(false) }
+    var syncStatus by remember { mutableStateOf("Серверга уланмоқда...") }
+    DisposableEffect(cloud) {
+        val registration = cloud.listen { records, error ->
+            if (records != null) {
+                bookings.clear()
+                bookings.addAll(records)
+                serverReady = true
+                syncStatus = "Онлайн"
+            } else {
+                serverReady = false
+                syncStatus = error ?: "Сервер кутилмоқда"
+            }
+        }
+        onDispose { registration.remove() }
+    }
     var date by remember { mutableStateOf(LocalDate.now().format(dateFmt)) }
     var time by remember { mutableStateOf("16:00") }
     var name by remember { mutableStateOf("") }
@@ -82,7 +100,7 @@ fun BanyaApp(context: Context) {
         Text("♛ БАНЯ БРОН", color = Gold, fontSize = 29.sp,
             fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth())
-        Text("16:00 – 23:00", color = Color.White, textAlign = TextAlign.Center,
+        Text("16:00 – 23:00 • $syncStatus", color = Color.White, textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 18.dp))
         when (page) {
             0 -> {
@@ -138,7 +156,7 @@ fun BanyaApp(context: Context) {
                     }
                     Text("Жами: ${duration * 50} тг", color = Gold, fontSize = 23.sp,
                         modifier = Modifier.padding(vertical = 14.dp))
-                    Button(onClick = {
+                    Button(enabled = serverReady && !saving, onClick = {
                         val d = runCatching { LocalDate.parse(date, dateFmt) }.getOrNull()
                         val t = runCatching { LocalTime.parse(time, DateTimeFormatter.ofPattern("HH:mm")) }.getOrNull()
                         val end = t?.plusMinutes(duration.toLong())
@@ -146,6 +164,7 @@ fun BanyaApp(context: Context) {
                             d == null || t == null -> "Сана ёки вақт формати нотўғри"
                             d.isBefore(LocalDate.now()) -> "Ўтган санага брон қилиб бўлмайди"
                             name.isBlank() -> "Мижоз исмини киритинг"
+                            t.minute % 30 != 0 -> "Вақт 00 ёки 30 дақиқадан бошлансин"
                             t.isBefore(LocalTime.of(16, 0)) || end!!.isAfter(LocalTime.of(23, 0)) ||
                                 end.isBefore(t) -> "Иш вақти 16:00–23:00"
                             bookings.any { b ->
@@ -154,10 +173,13 @@ fun BanyaApp(context: Context) {
                                 LocalTime.parse(b.start).isBefore(end)
                             } -> "Бу вақтда хона банд. Бошқа вақтни танланг"
                             else -> {
-                                bookings.add(Booking(selectedRoom, date, time, duration, name.trim()))
-                                saveBookings(context, bookings)
-                                name = ""
-                                "Брон сақланди!"
+                                saving = true
+                                cloud.reserve(Booking(selectedRoom, date, time, duration, name.trim())) { ok, result ->
+                                    saving = false
+                                    message = result
+                                    if (ok) name = ""
+                                }
+                                "Сервер тасдиғи кутилмоқда..."
                             }
                         }
                     }, colors = ButtonDefaults.buttonColors(containerColor = Gold),
