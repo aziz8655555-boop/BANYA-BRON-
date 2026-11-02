@@ -319,8 +319,8 @@ fun BanyaApp() {
                                     val m = 900 + index * 60
                                     Box(Modifier.width(hourWidth).height(31.dp),
                                         contentAlignment = Alignment.Center) {
-                                        Text("%02d".format((m / 60) % 24),
-                                            color = LuxGold, fontSize = 10.sp)
+                                        Text("%02d:00".format((m / 60) % 24),
+                                            color = LuxGold, fontSize = 8.sp, maxLines = 1)
                                     }
                                 }
                             }
