@@ -63,6 +63,9 @@ fun BanyaApp() {
     var occupancyDay by remember { mutableStateOf(LocalDate.now()) }
     var busy by remember { mutableStateOf(false) }
     var notice by remember { mutableStateOf("") }
+    var soundOn by remember { mutableStateOf(true) }
+    var vibrationOn by remember { mutableStateOf(true) }
+    var nightOn by remember { mutableStateOf(false) }
     val today = LocalDate.now()
     val now = LocalTime.now()
 
@@ -208,33 +211,81 @@ fun BanyaApp() {
                 }
             }
             2 -> {
-                Column(Modifier.weight(1f)) {
+                Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
                     LuxuryPanel(Modifier.fillMaxWidth()) {
-                        Text("⚙  Созламалар", color = LuxGold, fontSize = 24.sp)
+                        Text("⚙  Созламалар", color = LuxGold, fontSize = 24.sp,
+                            fontWeight = FontWeight.Black)
                     }
-                    Spacer(Modifier.height(14.dp))
+                    Spacer(Modifier.height(10.dp))
                     LuxuryPanel(Modifier.fillMaxWidth()) {
-                        Text("◷  Иш вақти", color = LuxGold, fontSize = 20.sp)
-                        Text("16:00 – 23:00", color = Color.White, fontSize = 18.sp)
+                        Text("◷  Иш вақти", color = LuxGold, fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold)
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            modifier = Modifier.fillMaxWidth()) {
+                            Text("Бошланиш:", color = Color.White)
+                            Text("16:00", color = LuxGold, fontSize = 19.sp)
+                            Text("–", color = LuxGold)
+                            Text("Тугаш:", color = Color.White)
+                            Text("23:00", color = LuxGold, fontSize = 19.sp)
+                        }
                     }
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(10.dp))
                     LuxuryPanel(Modifier.fillMaxWidth()) {
-                        Text("◉  Тарифлар", color = LuxGold, fontSize = 20.sp)
-                        Text("1 соат                  3 000 тг", color = Color.White)
-                        Text("1,5 соат               4 500 тг", color = Color.White)
-                        Text("2 соат                  6 000 тг", color = Color.White)
+                        Text("◉  Тарифлар (баня нархлари)", color = LuxGold, fontSize = 19.sp,
+                            fontWeight = FontWeight.Bold)
+                        Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                            listOf("1 соат" to "3 000 тг", "1,5 соат" to "4 500 тг",
+                                "2 соат" to "6 000 тг").forEach { (label, price) ->
+                                Column(Modifier.weight(1f).border(1.dp, LuxGold, RoundedCornerShape(12.dp))
+                                    .padding(7.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(label, color = LuxGold, fontSize = 13.sp)
+                                    Text(price, color = Color.White, fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
                     }
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(10.dp))
                     LuxuryPanel(Modifier.fillMaxWidth()) {
-                        Text("▣  Дастур", color = LuxGold, fontSize = 20.sp)
-                        Text("Firebase: $status", color = if (online) LuxGreen else LuxGold)
-                        Text("6 та хона • Икки телефон • 3D версия", color = Color.White)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("♨  Хоналар сони", modifier = Modifier.weight(1f),
+                                color = LuxGold, fontSize = 19.sp)
+                            Text("6", color = Color.White, fontSize = 24.sp)
+                        }
                     }
-                    Spacer(Modifier.height(20.dp))
+                    Spacer(Modifier.height(10.dp))
+                    LuxuryPanel(Modifier.fillMaxWidth()) {
+                        Text("☁  Синхронизация (онлайн)", color = LuxGold, fontSize = 19.sp)
+                        Text("Firebase: $status", color = if (online) LuxGreen else LuxRed)
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    LuxuryPanel(Modifier.fillMaxWidth()) {
+                        Text("⚙  Қўшимча созламалар", color = LuxGold, fontSize = 19.sp)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Овозли билдириш", color = Color.White, modifier = Modifier.weight(1f))
+                            Switch(checked = soundOn, onCheckedChange = { soundOn = it })
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Вибрация", color = Color.White, modifier = Modifier.weight(1f))
+                            Switch(checked = vibrationOn, onCheckedChange = { vibrationOn = it })
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Тунги режим", color = Color.White, modifier = Modifier.weight(1f))
+                            Switch(checked = nightOn, onCheckedChange = { nightOn = it })
+                        }
+                        Text("Тил: Ўзбекча", color = Color.White)
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    LuxuryPanel(Modifier.fillMaxWidth()) {
+                        Text("ⓘ  Маълумот", color = LuxGold, fontSize = 19.sp)
+                        Text("Дастур: БАНЯ БРОН  |  6 та хона", color = Color.White)
+                        Text("Firebase: икки телефон синхронлашуви", color = Color.White)
+                    }
+                    Spacer(Modifier.height(10.dp))
                     TextButton(onClick = { FirebaseAuth.getInstance().signOut() }) {
-                        Text("Аккаунтдан чиқиш", color = gold)
+                        Text("Аккаунтдан чиқиш", color = LuxGold)
                     }
-                    Spacer(Modifier.weight(1f))
                 }
             }
             3 -> {
