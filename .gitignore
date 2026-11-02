@@ -1,0 +1,12 @@
+# Android
+.gradle/
+build/
+**/build/
+local.properties
+*.iml
+.idea/
+.DS_Store
+# Local service credentials (not needed in GitHub)
+service-account*.json
+*.jks
+*.keystore
