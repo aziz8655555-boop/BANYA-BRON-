@@ -1,10 +1,46 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Хавфсизлик: Firebase Authentication ва ходимлар рухсати
-    // созланмагунча маълумотларга кириш ёпиқ.
-    match /{document=**} {
-      allow read, write: if false;
+    function staff() {
+      return request.auth != null
+        && request.auth.uid in [
+          "ymSAbrY795Pbt4logGE4VfnvsNU2",
+          "dI1RiD5xbuawzRfruBL6WMagDr63"
+        ];
+    }
+
+    // Preserve access to the existing legacy bookings collection.
+    match /bookings/{bookingId} {
+      allow read, write: if staff();
+    }
+
+    // A booking owns 2, 3, or 4 immutable 30-minute slot documents.
+    // A Firestore transaction creates them atomically, preventing races.
+    match /booking_slots_v1/{slotId} {
+      allow get, list: if staff();
+      allow create: if staff()
+        && request.resource.data.keys().hasOnly([
+          'bookingId', 'room', 'date', 'start', 'minutes', 'name', 'createdBy'
+        ])
+        && request.resource.data.keys().hasAll([
+          'bookingId', 'room', 'date', 'start', 'minutes', 'name', 'createdBy'
+        ])
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.room is int
+        && request.resource.data.room >= 1
+        && request.resource.data.room <= 6
+        && request.resource.data.date is string
+        && request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.start is string
+        && request.resource.data.start.matches('^([01][0-9]|2[0-3]):(00|30)$')
+        && request.resource.data.minutes in [60, 90, 120]
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 120
+        && request.resource.data.bookingId is string
+        && request.resource.data.bookingId.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}_r[1-6]_[0-9]{3,4}$')
+        && slotId.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}_r[1-6]_[0-9]{3,4}$');
+      allow update, delete: if false;
     }
   }
 }
