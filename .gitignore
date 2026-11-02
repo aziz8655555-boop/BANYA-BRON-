@@ -6,7 +6,9 @@ local.properties
 *.iml
 .idea/
 .DS_Store
-# Local service credentials (not needed in GitHub)
+# Firebase config stays on build machine, not public GitHub
+app/google-services.json
+google-services.json
 service-account*.json
 *.jks
 *.keystore
