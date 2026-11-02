@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
@@ -39,10 +40,12 @@ fun AuthGate(content: @Composable () -> Unit) {
             Spacer(Modifier.height(20.dp))
             OutlinedTextField(value = email, onValueChange = { email = it },
                 label = { Text("Email") }, singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color(0xFFE8BE69), unfocusedLabelColor = Color.White, focusedBorderColor = Color(0xFFE8BE69), unfocusedBorderColor = Color.White),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email))
             Spacer(Modifier.height(12.dp))
             OutlinedTextField(value = password, onValueChange = { password = it },
                 label = { Text("Пароль") }, singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = Color(0xFFE8BE69), unfocusedLabelColor = Color.White, focusedBorderColor = Color.White),
                 visualTransformation = PasswordVisualTransformation())
             Spacer(Modifier.height(16.dp))
             Button(enabled = !busy && email.isNotBlank() && password.isNotBlank(), onClick = {
