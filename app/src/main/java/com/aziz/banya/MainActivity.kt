@@ -113,7 +113,7 @@ fun BanyaApp() {
                         Text(if (editing == null) "▦  Брон қилиш" else "✎  Бронни таҳрирлаш",
                             color = LuxGold, fontSize = 23.sp, fontWeight = FontWeight.Bold)
                     }
-                    Text("Хона", color = Color.White, modifier = Modifier.padding(top = 10.dp))
+                    Text("♨  Хона", color = LuxGold, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 5.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         (1..6).forEach { r ->
                             OutlinedButton(onClick = { room = r }, contentPadding = PaddingValues(8.dp),
@@ -122,7 +122,7 @@ fun BanyaApp() {
                             }
                         }
                     }
-                    LuxuryPanel(Modifier.fillMaxWidth().padding(top = 12.dp)) {
+                    LuxuryPanel(Modifier.fillMaxWidth().padding(top = 5.dp)) {
                         Text("◷  Бошланиш вақти", color = LuxGold, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             SmallControl("−1 соат") {
@@ -143,17 +143,17 @@ fun BanyaApp() {
                             }
                         }
                     }
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(5.dp))
                     LuxuryPanel(Modifier.fillMaxWidth()) {
                         OutlinedTextField(value = name, onValueChange = { name = it },
                             placeholder = { Text("Мижоз исмини киритинг...", color = Color.LightGray) },
                             singleLine = true, textStyle = androidx.compose.ui.text.TextStyle(fontSize = 21.sp),
-                            modifier = Modifier.fillMaxWidth().heightIn(min = 76.dp),
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.White, unfocusedTextColor = Color.White,
                                 focusedBorderColor = LuxGold, unfocusedBorderColor = LuxGold, cursorColor = LuxGold))
                     }
-                    Text("Давомийлиги", color = Color.White, modifier = Modifier.padding(top = 12.dp))
+                    Text("⌛  Давомийлиги (вақт)", color = LuxGold, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 5.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         listOf(60 to "1 соат", 90 to "1,5 соат", 120 to "2 соат").forEach { (m, title) ->
                             OutlinedButton(onClick = { duration = m }, contentPadding = PaddingValues(8.dp),
@@ -162,7 +162,7 @@ fun BanyaApp() {
                             }
                         }
                     }
-                    LuxuryPanel(Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
+                    LuxuryPanel(Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
                         Text("◉  Жами: ${duration * 50} тг", color = LuxGold,
                             fontSize = 23.sp, fontWeight = FontWeight.Bold)
                     }
@@ -190,8 +190,8 @@ fun BanyaApp() {
                         }
                     })
                     if (notice.isNotBlank()) Text(notice, color = gold, modifier = Modifier.padding(vertical = 10.dp))
-                    Text("Сақланган бронлар", color = gold, fontSize = 20.sp,
-                        modifier = Modifier.padding(top = 12.dp, bottom = 6.dp))
+                    Text("Сақланган бронлар", color = gold, fontSize = 17.sp,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
                     bookings.sortedWith(compareBy<Booking> { it.date }.thenBy { it.start })
                         .forEach { b ->
                             LuxuryPanel(Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
