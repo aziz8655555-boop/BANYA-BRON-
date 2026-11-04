@@ -16,7 +16,8 @@ import com.google.firebase.auth.FirebaseAuth
 @Composable
 fun Settings3D(online: Boolean, status: String, modifier: Modifier = Modifier,
                onHoursChanged: (Int, Int) -> Unit = { _, _ -> },
-               onTariffsChanged: (Int, Int, Int) -> Unit = { _, _, _ -> }) {
+               onTariffsChanged: (Int, Int, Int) -> Unit = { _, _, _ -> },
+               onRoomsChanged: (Int) -> Unit = {}) {
     val gold = LuxGold
     val prefs = androidx.compose.ui.platform.LocalContext.current
         .getSharedPreferences("banya_settings", android.content.Context.MODE_PRIVATE)
@@ -29,6 +30,7 @@ fun Settings3D(online: Boolean, status: String, modifier: Modifier = Modifier,
     var price90 by remember { mutableStateOf(prefs.getInt("price90", 4500).toString()) }
     var price120 by remember { mutableStateOf(prefs.getInt("price120", 6000).toString()) }
     var editValue by remember { mutableStateOf("") }
+    var roomCount by remember { mutableIntStateOf(prefs.getInt("roomCount", 6).coerceIn(1, 6)) }
     var startHour by remember { mutableIntStateOf(prefs.getInt("startHour", 16)) }
     var endHour by remember { mutableIntStateOf(prefs.getInt("endHour", 23)) }
     fun saveHours(start: Int, end: Int) {
@@ -85,7 +87,21 @@ fun Settings3D(online: Boolean, status: String, modifier: Modifier = Modifier,
         LuxuryPanel(Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("♨  Хоналар сони", color = gold, fontSize = 19.sp, modifier = Modifier.weight(1f))
-                Text("6", color = Color.White, fontSize = 24.sp)
+                TextButton(onClick = {
+                    if (roomCount > 1) {
+                        roomCount--
+                        prefs.edit().putInt("roomCount", roomCount).apply()
+                        onRoomsChanged(roomCount)
+                    }
+                }) { Text("−", color = gold, fontSize = 24.sp) }
+                Text("$roomCount", color = Color.White, fontSize = 24.sp)
+                TextButton(onClick = {
+                    if (roomCount < 6) {
+                        roomCount++
+                        prefs.edit().putInt("roomCount", roomCount).apply()
+                        onRoomsChanged(roomCount)
+                    }
+                }) { Text("+", color = gold, fontSize = 24.sp) }
             }
         }
         LuxuryPanel(Modifier.fillMaxWidth()) {
