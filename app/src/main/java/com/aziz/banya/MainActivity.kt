@@ -304,6 +304,7 @@ fun BanyaApp() {
                                 val cb: (Boolean, String) -> Unit = { ok, msg ->
                                     busy = false
                                     notice = msg
+                                    android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_LONG).show()
                                     if (ok) { editing = null; name = ""; phone = "" }
                                 }
                                 if (previous == null) {
@@ -315,7 +316,9 @@ fun BanyaApp() {
                             }
                         }
                     })
-                    if (notice.isNotBlank()) Text(notice, color = gold, modifier = Modifier.padding(vertical = 10.dp))
+                    if (!online) Text("Брон сақлаш вақтинча ўчирилган: $status", color = LuxRed, modifier = Modifier.padding(vertical = 6.dp))
+                    if (busy) Text("Брон серверга юборилмоқда...", color = LuxGold, modifier = Modifier.padding(vertical = 6.dp))
+                    if (notice.isNotBlank()) Text(notice, color = if (notice.contains("сақланди")) LuxGreen else LuxRed, modifier = Modifier.padding(vertical = 10.dp))
                     Text("Сақланган бронлар", color = gold, fontSize = 17.sp,
                         modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
                     bookings.sortedWith(compareBy<Booking> { it.date }.thenBy { it.start })
