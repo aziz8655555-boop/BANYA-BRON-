@@ -87,6 +87,8 @@ fun BanyaApp() {
     var editing by remember { mutableStateOf<Booking?>(null) }
     var deleting by remember { mutableStateOf<Booking?>(null) }
     var selectedBooking by remember { mutableStateOf<Booking?>(null) }
+    var paymentBooking by remember { mutableStateOf<Booking?>(null) }
+    var paymentMethod by remember { mutableStateOf("kaspi") }
     var occupancyDay by remember { mutableStateOf(LocalDate.now()) }
     var busy by remember { mutableStateOf(false) }
     var notice by remember { mutableStateOf("") }
@@ -423,8 +425,13 @@ LuxuryNav(if (page == 3) 0 else page) { i -> if (i == 1) openForm() else page = 
                 }
             },
             confirmButton = {
-                TextButton(onClick = { selectedBooking = null; openForm(b) }) {
-                    Text("Таҳрирлаш", color = LuxGold, fontWeight = FontWeight.Bold)
+                Row {
+                    TextButton(onClick = { selectedBooking = null; paymentBooking = b }) {
+                        Text("Тўлов", color = LuxGreen, fontWeight = FontWeight.Bold)
+                    }
+                    TextButton(onClick = { selectedBooking = null; openForm(b) }) {
+                        Text("Таҳрирлаш", color = LuxGold, fontWeight = FontWeight.Bold)
+                    }
                 }
             },
             dismissButton = {
@@ -435,6 +442,42 @@ LuxuryNav(if (page == 3) 0 else page) { i -> if (i == 1) openForm() else page = 
                     TextButton(onClick = { selectedBooking = null }) {
                         Text("Ёпиш", color = Color.White)
                     }
+                }
+            }
+        )
+    }
+    paymentBooking?.let { b ->
+        AlertDialog(
+            onDismissRequest = { paymentBooking = null },
+            containerColor = Color(0xFF061525),
+            shape = RoundedCornerShape(20.dp),
+            title = { Text("♛ Тўлов маълумоти", color = LuxGold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("${b.room}-хона • ${b.date}", color = Color.White)
+                    Text("Жами: ${tariff(b.minutes)} тг",
+                        color = LuxGold, fontSize = 21.sp, fontWeight = FontWeight.Bold)
+                    listOf("cash" to "Нақд", "kaspi" to "Kaspi",
+                        "card" to "Карта").forEach { (key, label) ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(selected = paymentMethod == key,
+                                onClick = { paymentMethod = key })
+                            Text(label, color = Color.White,
+                                modifier = Modifier.clickable { paymentMethod = key })
+                        }
+                    }
+                    Text("Сақлаш Firebase рухсатлари тайёр бўлгач фаоллашади.",
+                        color = LuxGold, fontSize = 12.sp)
+                }
+            },
+            confirmButton = {
+                TextButton(enabled = false, onClick = {}) {
+                    Text("Тўловни сақлаш")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { paymentBooking = null }) {
+                    Text("Ёпиш", color = LuxGold)
                 }
             }
         )
