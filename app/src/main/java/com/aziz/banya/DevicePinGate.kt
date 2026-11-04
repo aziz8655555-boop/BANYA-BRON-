@@ -4,7 +4,9 @@ import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.EmailAuthProvider
 import android.util.Base64
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -45,35 +47,7 @@ fun DevicePinGate(content: @Composable () -> Unit) {
     var message by remember { mutableStateOf("") }
     val configured = prefs.contains("hash") && prefs.contains("salt")
 
-    if (unlocked) {
-        content()
-        return
-    }
-
-    WoodBackground {
-        Column(Modifier.fillMaxSize().padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center) {
-            Text("♛", color = LuxGold, fontSize = 55.sp)
-            Text("БАНЯ БРОН", color = LuxGold, fontSize = 30.sp,
-                fontWeight = FontWeight.Black)
-            Spacer(Modifier.height(22.dp))
-            LuxuryPanel(Modifier.fillMaxWidth()) {
-                Text(if (!configured) {
-                    if (setupStep == 0) "4 рақамли PIN ўрнатинг" else "PIN-кодни такрорланг"
-                } else "PIN-кодни киритинг", color = LuxGold, fontSize = 19.sp)
-                Spacer(Modifier.height(12.dp))
-                OutlinedTextField(value = pin, onValueChange = { next ->
-                    if (next.length <= 4 && next.all(Char::isDigit)) pin = next
-                }, singleLine = true, modifier = Modifier.fillMaxWidth(),
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White, unfocusedTextColor = Color.White,
-                        focusedBorderColor = LuxGold, unfocusedBorderColor = LuxGold))
-                Spacer(Modifier.height(12.dp))
-                LuxuryButton("Тасдиқлаш", enabled = pin.length == 4,
-                    modifier = Modifier.fillMaxWidth(), onClick = {
+    fun submitPin() {
                     if (!configured) {
                         if (setupStep == 0) {
                             confirm = pin
@@ -119,7 +93,60 @@ fun DevicePinGate(content: @Composable () -> Unit) {
                             } else message = "PIN нотўғри. Қолган уринишлар: ${5 - attempts}"
                         }
                     }
-                })
+    }
+
+    LaunchedEffect(pin) {
+        if (pin.length == 4) submitPin()
+    }
+
+    if (unlocked) {
+        content()
+        return
+    }
+
+    WoodBackground {
+        Column(Modifier.fillMaxSize().padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center) {
+            Text("♛", color = LuxGold, fontSize = 55.sp)
+            Text("БАНЯ БРОН", color = LuxGold, fontSize = 30.sp,
+                fontWeight = FontWeight.Black)
+            Spacer(Modifier.height(22.dp))
+            LuxuryPanel(Modifier.fillMaxWidth()) {
+                Text(if (!configured) {
+                    if (setupStep == 0) "4 рақамли PIN ўрнатинг" else "PIN-кодни такрорланг"
+                } else "PIN-кодни киритинг", color = LuxGold, fontSize = 19.sp)
+                Spacer(Modifier.height(12.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    repeat(4) { index ->
+                        Text(if (index < pin.length) "●" else "○",
+                            color = LuxGold, fontSize = 31.sp,
+                            modifier = Modifier.padding(horizontal = 9.dp))
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+                listOf(listOf("1", "2", "3"), listOf("4", "5", "6"),
+                    listOf("7", "8", "9"), listOf("", "0", "⌫")).forEach { row ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                        row.forEach { digit ->
+                            if (digit.isEmpty()) {
+                                Spacer(Modifier.weight(1f).height(60.dp))
+                            } else {
+                                Box(Modifier.weight(1f).height(60.dp)
+                                    .background(Color(0xFF092C4B), RoundedCornerShape(13.dp))
+                                    .border(1.5.dp, LuxGold, RoundedCornerShape(13.dp))
+                                    .clickable {
+                                        if (digit == "⌫") pin = pin.dropLast(1)
+                                        else if (pin.length < 4) pin += digit
+                                    }, contentAlignment = Alignment.Center) {
+                                    Text(digit, color = LuxGold, fontSize = 27.sp,
+                                        fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(9.dp))
+                }
                 if (configured) {
                     TextButton(onClick = { resetDialog = true }) {
                         Text("PIN-кодни унутдим", color = LuxGold)
