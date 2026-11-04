@@ -52,6 +52,15 @@ fun BanyaApp() {
     val prefs = remember(context) { context.getSharedPreferences("banya_settings", Context.MODE_PRIVATE) }
     var startHour by remember { mutableIntStateOf(prefs.getInt("startHour", 16)) }
     var endHour by remember { mutableIntStateOf(prefs.getInt("endHour", 23)) }
+    var price60 by remember { mutableIntStateOf(prefs.getInt("price60", 3000)) }
+    var price90 by remember { mutableIntStateOf(prefs.getInt("price90", 4500)) }
+    var price120 by remember { mutableIntStateOf(prefs.getInt("price120", 6000)) }
+    fun tariff(minutes: Int): Int = when (minutes) {
+        60 -> price60
+        90 -> price90
+        120 -> price120
+        else -> 0
+    }
     val earliest = startHour * 60
     val latest = endHour * 60
     val cloud = remember { CloudBookings() }
@@ -167,9 +176,9 @@ fun BanyaApp() {
                     }
                     Text("⌛  Давомийлиги (вақт)", color = LuxGold, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 5.dp))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        listOf(Triple(60, "1 соат", "3 000 тг"),
-                            Triple(90, "1,5 соат", "4 500 тг"),
-                            Triple(120, "2 соат", "6 000 тг")).forEach { (m, title, price) ->
+                        listOf(Triple(60, "1 соат", "$price60 тг"),
+                            Triple(90, "1,5 соат", "$price90 тг"),
+                            Triple(120, "2 соат", "$price120 тг")).forEach { (m, title, price) ->
                             Column(Modifier.weight(1f).height(66.dp)
                                 .background(if (duration == m) LuxGold else Color(0xFF082846),
                                     RoundedCornerShape(12.dp))
@@ -185,7 +194,7 @@ fun BanyaApp() {
                         }
                     }
                     LuxuryPanel(Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
-                        Text("◉  Жами: ${duration * 50} тг", color = LuxGold,
+                        Text("◉  Жами: ${tariff(duration)} тг", color = LuxGold,
                             fontSize = 23.sp, fontWeight = FontWeight.Bold)
                     }
                     LuxuryButton(if (editing == null) "✓  Бронни сақлаш" else "✓  Ўзгаришни сақлаш", enabled = online && !busy, positive = true, modifier = Modifier.fillMaxWidth(), onClick = {
@@ -219,7 +228,7 @@ fun BanyaApp() {
                             LuxuryPanel(Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
                                 Text("${b.date} • ${b.room}-хона • ${b.start}–${b.end}",
                                     color = gold, fontWeight = FontWeight.Bold)
-                                Text("${b.name} • ${b.price} тг", color = Color.White)
+                                Text("${b.name} • ${tariff(b.minutes)} тг", color = Color.White)
                                 Row {
                                     TextButton(enabled = online && !busy, onClick = { openForm(b) }) {
                                         Text("Таҳрирлаш", color = gold)
@@ -238,6 +247,11 @@ fun BanyaApp() {
                         startHour = start
                         endHour = end
                         if (minute < start * 60 || minute >= end * 60) minute = start * 60
+                    },
+                    onTariffsChanged = { p60, p90, p120 ->
+                        price60 = p60
+                        price90 = p90
+                        price120 = p120
                     })
             }
             3 -> {
@@ -346,7 +360,7 @@ LuxuryNav(if (page == 3) 0 else page) { i -> if (i == 1) openForm() else page = 
                     Text("Мижоз: ${b.name}")
                     Text("Вақт: ${b.start}–${b.end}")
                     Text("Давомийлиги: ${b.minutes} дақиқа")
-                    Text("Нарх: ${b.price} тг")
+                    Text("Нарх: ${tariff(b.minutes)} тг")
                 }
             },
             confirmButton = {
