@@ -250,6 +250,14 @@ fun BanyaApp() {
                             },
                             singleLine = true,
                             placeholder = { Text("+7 ...", color = Color.LightGray) },
+                            textStyle = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 20.sp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedBorderColor = LuxGold,
+                                unfocusedBorderColor = LuxGold,
+                                cursorColor = LuxGold
+                            ),
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -285,7 +293,10 @@ fun BanyaApp() {
                             room !in 1..roomCount -> "Хона рақами нотўғри"
                             day.isBefore(today) -> "Ўтган кунга брон қўйиб бўлмайди"
                             minute < earliest || minute + duration > latest -> "Иш вақти %02d:00–%02d:00".format(startHour, endHour)
-                            name.isBlank() -> "Мижоз исмини киритинг"
+                            name.isBlank() -> {
+                                android.widget.Toast.makeText(context, "Мижоз исмини киритинг", android.widget.Toast.LENGTH_LONG).show()
+                                "Мижоз исмини киритинг"
+                            }
                             name.length > 120 -> "Исм жуда узун"
                             else -> {
                                 busy = true
