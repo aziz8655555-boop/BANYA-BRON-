@@ -28,7 +28,8 @@ class CloudBookings {
                         doc.getString("date") ?: return@runCatching null,
                         doc.getString("start") ?: return@runCatching null,
                         (doc.getLong("minutes") ?: return@runCatching null).toInt(),
-                        doc.getString("name") ?: return@runCatching null
+                        doc.getString("name") ?: return@runCatching null,
+                        doc.getString("permanentId")
                     )
                 }.getOrNull()
             }.distinctBy { "${it.room}|${it.date}|${it.start}" }
