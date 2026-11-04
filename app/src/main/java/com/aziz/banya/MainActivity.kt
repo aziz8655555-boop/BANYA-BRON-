@@ -219,8 +219,17 @@ fun BanyaApp() {
                         SmallControl("❯") { occupancyDay = occupancyDay.plusDays(1) }
                         SmallControl("Бугун") { occupancyDay = today }
                     }
-                    Text("✓ Бўш   × Банд   • Соатлик жадвал",
-                        color = Color.White, fontSize = 12.sp, modifier = Modifier.padding(vertical = 5.dp))
+                    LuxuryPanel(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically) {
+                            Text("✓ Бўш", color = LuxGreen, fontSize = 12.sp)
+                            Text("× Банд", color = LuxRed, fontSize = 12.sp)
+                            Text("✓ Танланган", color = LuxGold, fontSize = 12.sp)
+                        }
+                        Text("◷ Соатлар бўйича жадвал", color = LuxGold,
+                            fontSize = 12.sp, textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth())
+                    }
                     val selectedDate = occupancyDay.format(fmt)
                     BoxWithConstraints(Modifier.fillMaxWidth()) {
                         // All ten hourly columns and six rooms fit the available screen width.
@@ -230,7 +239,7 @@ fun BanyaApp() {
                             Row {
                                 Box(Modifier.width(roomWidth).height(31.dp),
                                     contentAlignment = Alignment.Center) {
-                                    Text("Хона", color = LuxGold, fontSize = 12.sp)
+                                    Text("♨ Хона", color = LuxGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 }
                                 (0..9).forEach { index ->
                                     val m = 900 + index * 60
@@ -245,7 +254,7 @@ fun BanyaApp() {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Box(Modifier.width(roomWidth).height(43.dp),
                                         contentAlignment = Alignment.Center) {
-                                        Text("$r-хона", color = LuxGold, fontSize = 12.sp)
+                                        Text("$r-хона", color = LuxGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                     }
                                     (0..9).forEach { index ->
                                         val m = 900 + index * 60
