@@ -113,6 +113,66 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Permanent booking identities; these are never deleted with slot reservations.
+    match /booking_identity_v1/{identityId} {
+      allow get, list: if staff();
+      allow create: if staff()
+        && identityId.matches('^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}
+      allow read, write: if staff();
+    }
+    match /booking_slots_v1/{slotId} {
+      allow get, list: if staff();
+      allow create, update: if staff() && validSlot(slotId);
+      allow delete: if staff();
+    }
+  }
+}
+)
+        && request.resource.data.keys().hasOnly([
+          'slotBookingId', 'date', 'room', 'start', 'createdAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'slotBookingId', 'date', 'room', 'start', 'createdAt'
+        ])
+        && request.resource.data.date is string
+        && request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}
+      allow read, write: if staff();
+    }
+    match /booking_slots_v1/{slotId} {
+      allow get, list: if staff();
+      allow create, update: if staff() && validSlot(slotId);
+      allow delete: if staff();
+    }
+  }
+}
+)
+        && request.resource.data.room is int
+        && request.resource.data.room >= 1
+        && request.resource.data.room <= 6
+        && request.resource.data.start is string
+        && request.resource.data.start.matches('^([01][0-9]|2[0-3]):(00|30)
+      allow read, write: if staff();
+    }
+    match /booking_slots_v1/{slotId} {
+      allow get, list: if staff();
+      allow create, update: if staff() && validSlot(slotId);
+      allow delete: if staff();
+    }
+  }
+}
+)
+        && request.resource.data.slotBookingId is string
+        && request.resource.data.slotBookingId.matches(
+          '^[0-9]{4}-[0-9]{2}-[0-9]{2}_r[1-6]_[0-9]{3,4}
+      allow update, delete: if false;
+    }
+
+
+        )
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+
     match /bookings/{bookingId} {
       allow read, write: if staff();
     }
