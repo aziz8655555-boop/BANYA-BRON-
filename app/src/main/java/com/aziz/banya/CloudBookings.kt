@@ -34,15 +34,21 @@ class CloudBookings {
             onResult(records, null)
         }
 
+    // Existing slot identity is kept unchanged for backward compatibility.
+    // Do not use this as a unique payment ID: a cancelled slot may be booked again.
+    fun slotBookingId(b: Booking): String {
+        val minute = LocalTime.parse(b.start).toSecondOfDay() / 60
+        return "${b.date}_r${b.room}_$minute"
+    }
+
     private fun references(b: Booking) = (0 until b.minutes / 30).map { n ->
         val minute = LocalTime.parse(b.start).toSecondOfDay() / 60 + n * 30
         slots.document("${b.date}_r${b.room}_$minute")
     }
 
     private fun fields(b: Booking): Map<String, Any> {
-        val minute = LocalTime.parse(b.start).toSecondOfDay() / 60
         return mapOf(
-            "bookingId" to "${b.date}_r${b.room}_$minute",
+            "bookingId" to slotBookingId(b),
             "room" to b.room, "date" to b.date,
             "start" to b.start, "minutes" to b.minutes,
             "name" to b.name.trim(),
