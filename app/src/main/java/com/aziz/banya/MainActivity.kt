@@ -52,6 +52,7 @@ fun BanyaApp() {
     val prefs = remember(context) { context.getSharedPreferences("banya_settings", Context.MODE_PRIVATE) }
     var startHour by remember { mutableIntStateOf(prefs.getInt("startHour", 16)) }
     var endHour by remember { mutableIntStateOf(prefs.getInt("endHour", 23)) }
+    var roomCount by remember { mutableIntStateOf(prefs.getInt("roomCount", 6).coerceIn(1, 6)) }
     var price60 by remember { mutableIntStateOf(prefs.getInt("price60", 3000)) }
     var price90 by remember { mutableIntStateOf(prefs.getInt("price90", 4500)) }
     var price120 by remember { mutableIntStateOf(prefs.getInt("price120", 6000)) }
@@ -123,7 +124,7 @@ fun BanyaApp() {
                     }
                     Text("♨  Хона (хонани танланг)", color = LuxGold, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 5.dp))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        (1..6).forEach { r ->
+                        (1..roomCount).forEach { r ->
                             Box(Modifier.weight(1f).height(48.dp)
                                 .background(if (room == r) LuxGold else Color(0xFF082846), RoundedCornerShape(12.dp))
                                 .border(1.5.dp, LuxGold, RoundedCornerShape(12.dp))
@@ -202,6 +203,7 @@ fun BanyaApp() {
                         val time = "%02d:%02d".format(minute / 60, minute % 60)
                         val proposed = Booking(room, date, time, duration, name.trim())
                         notice = when {
+                            room !in 1..roomCount -> "Хона рақами нотўғри"
                             day.isBefore(today) -> "Ўтган кунга брон қўйиб бўлмайди"
                             minute < earliest || minute + duration > latest -> "Иш вақти %02d:00–%02d:00".format(startHour, endHour)
                             name.isBlank() -> "Мижоз исмини киритинг"
@@ -252,6 +254,10 @@ fun BanyaApp() {
                         price60 = p60
                         price90 = p90
                         price120 = p120
+                    },
+                    onRoomsChanged = { count ->
+                        roomCount = count
+                        if (room > count) room = count
                     })
             }
             3 -> {
