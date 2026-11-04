@@ -63,6 +63,56 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Immutable payment ledger, separate from deletable booking slots.
+    match /payment_receipts/{paymentId} {
+      allow get, list: if staff();
+      allow create: if staff()
+        && paymentId.matches('^[A-Za-z0-9_-]{16,100}
+      allow read, write: if staff();
+    }
+    match /booking_slots_v1/{slotId} {
+      allow get, list: if staff();
+      allow create, update: if staff() && validSlot(slotId);
+      allow delete: if staff();
+    }
+  }
+}
+)
+        && request.resource.data.keys().hasOnly([
+          'bookingId', 'date', 'room', 'amountKzt',
+          'method', 'recordedBy', 'createdAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'bookingId', 'date', 'room', 'amountKzt',
+          'method', 'recordedBy', 'createdAt'
+        ])
+        && request.resource.data.bookingId is string
+        && request.resource.data.bookingId.size() >= 1
+        && request.resource.data.bookingId.size() <= 120
+        && request.resource.data.date is string
+        && request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}
+      allow read, write: if staff();
+    }
+    match /booking_slots_v1/{slotId} {
+      allow get, list: if staff();
+      allow create, update: if staff() && validSlot(slotId);
+      allow delete: if staff();
+    }
+  }
+}
+)
+        && request.resource.data.room is int
+        && request.resource.data.room >= 1
+        && request.resource.data.room <= 6
+        && request.resource.data.amountKzt is int
+        && request.resource.data.amountKzt > 0
+        && request.resource.data.amountKzt <= 10000000
+        && request.resource.data.method in ['cash', 'kaspi', 'card']
+        && request.resource.data.recordedBy == request.auth.uid
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+
     match /bookings/{bookingId} {
       allow read, write: if staff();
     }
