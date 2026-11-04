@@ -51,7 +51,7 @@ fun BanyaApp() {
     val bookings = remember { mutableStateListOf<Booking>() }
     var online by remember { mutableStateOf(false) }
     var status by remember { mutableStateOf("Серверга уланмоқда") }
-    var page by remember { mutableIntStateOf(0) }
+    var page by remember { mutableIntStateOf(3) }
     var room by remember { mutableIntStateOf(1) }
     var day by remember { mutableStateOf(LocalDate.now()) }
     var minute by remember { mutableIntStateOf(16 * 60) }
@@ -99,14 +99,6 @@ fun BanyaApp() {
       Column(Modifier.fillMaxSize().navigationBarsPadding().padding(horizontal = 12.dp)) {
         LuxuryHeader(online, status)
         when (page) {
-            0 -> {
-                Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    LuxuryButton("◷  Умумий бандлик", {
-                        occupancyDay = today
-                        page = 3
-                    }, Modifier.fillMaxWidth().height(120.dp), enabled = online)
-                }
-            }
             1 -> {
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
                     LuxuryPanel(Modifier.fillMaxWidth()) {
@@ -297,7 +289,7 @@ fun BanyaApp() {
                 }
             }
         }
-LuxuryNav(if (page == 3) 0 else page) { i -> if (i == 1) openForm() else page = i }
+LuxuryNav(if (page == 3) 0 else page) { i -> if (i == 1) openForm() else page = if (i == 0) 3 else i }
       }
     }
 
