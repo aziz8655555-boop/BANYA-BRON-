@@ -49,13 +49,15 @@ class CloudBookings {
     }
 
     private fun fields(b: Booking, permanentId: String? = null): Map<String, Any> {
-        return mapOf(
+        val data = mutableMapOf<String, Any>(
             "bookingId" to slotBookingId(b),
             "room" to b.room, "date" to b.date,
             "start" to b.start, "minutes" to b.minutes,
             "name" to b.name.trim(),
             "createdBy" to (FirebaseAuth.getInstance().currentUser?.uid ?: "")
         )
+        (permanentId ?: b.permanentId)?.let { data["permanentId"] = it }
+        return data
     }
 
     // New bookings receive a permanent identity in a separate metadata document.
@@ -106,7 +108,7 @@ class CloudBookings {
             if (slotDocs.any { it.exists() } || identityDoc.exists()) {
                 throw IllegalStateException("SLOT_TAKEN")
             }
-            val data = fields(b)
+            val data = fields(b, permanentId)
             refs.forEach { tx.set(it, data) }
             tx.set(identityRef, mapOf(
                 "slotBookingId" to slotBookingId(b),
@@ -151,7 +153,7 @@ class CloudBookings {
             if (newRefs.any { it.path !in oldPaths && docs[it.path]?.exists() == true })
                 throw IllegalStateException("SLOT_TAKEN")
             oldRefs.forEach { tx.delete(it) }
-            val data = fields(replacement)
+            val data = fields(replacement, old.permanentId)
             newRefs.forEach { tx.set(it, data) }
             true
         }.addOnSuccessListener { callback(true, "Брон ўзгартирилди") }
