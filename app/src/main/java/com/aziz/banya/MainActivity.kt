@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,6 +48,12 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun BanyaApp() {
+    val context = LocalContext.current
+    val prefs = remember(context) { context.getSharedPreferences("banya_settings", Context.MODE_PRIVATE) }
+    var startHour by remember { mutableIntStateOf(prefs.getInt("startHour", 16)) }
+    var endHour by remember { mutableIntStateOf(prefs.getInt("endHour", 23)) }
+    val earliest = startHour * 60
+    val latest = endHour * 60
     val cloud = remember { CloudBookings() }
     val bookings = remember { mutableStateListOf<Booking>() }
     var online by remember { mutableStateOf(false) }
@@ -54,7 +61,7 @@ fun BanyaApp() {
     var page by remember { mutableIntStateOf(3) }
     var room by remember { mutableIntStateOf(1) }
     var day by remember { mutableStateOf(LocalDate.now()) }
-    var minute by remember { mutableIntStateOf(16 * 60) }
+    var minute by remember { mutableIntStateOf(prefs.getInt("startHour", 16) * 60) }
     var duration by remember { mutableIntStateOf(60) }
     var name by remember { mutableStateOf("") }
     var editing by remember { mutableStateOf<Booking?>(null) }
@@ -88,7 +95,7 @@ fun BanyaApp() {
         editing = b
         room = b?.room ?: targetRoom
         day = runCatching { LocalDate.parse(b?.date ?: today.format(fmt), fmt) }.getOrDefault(today)
-        minute = b?.let { LocalTime.parse(it.start).toSecondOfDay() / 60 } ?: 16 * 60
+        minute = b?.let { LocalTime.parse(it.start).toSecondOfDay() / 60 } ?: earliest
         duration = b?.minutes ?: 60
         name = b?.name ?: ""
         notice = ""
@@ -123,12 +130,12 @@ fun BanyaApp() {
                             horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                             Box(Modifier.weight(1f)) {
                                 SmallControl("−1 соат") {
-                                    minute = (minute - 60).coerceAtLeast(16 * 60)
+                                    minute = (minute - 60).coerceAtLeast(earliest)
                                 }
                             }
                             Column(Modifier.weight(1.35f), horizontalAlignment = Alignment.CenterHorizontally) {
                                 SmallControl("▲") {
-                                    minute = (minute + 30).coerceAtMost(22 * 60 + 30)
+                                    minute = (minute + 30).coerceAtMost((latest - 30).coerceAtLeast(earliest))
                                 }
                                 Box(Modifier.fillMaxWidth()
                                     .background(Color(0xFF061B30), RoundedCornerShape(10.dp))
@@ -138,12 +145,12 @@ fun BanyaApp() {
                                         color = LuxGold, fontSize = 27.sp, fontWeight = FontWeight.Black)
                                 }
                                 SmallControl("▼") {
-                                    minute = (minute - 30).coerceAtLeast(16 * 60)
+                                    minute = (minute - 30).coerceAtLeast(earliest)
                                 }
                             }
                             Box(Modifier.weight(1f)) {
                                 SmallControl("+1 соат") {
-                                    minute = (minute + 60).coerceAtMost(22 * 60 + 30)
+                                    minute = (minute + 60).coerceAtMost((latest - 30).coerceAtLeast(earliest))
                                 }
                             }
                         }
@@ -187,7 +194,7 @@ fun BanyaApp() {
                         val proposed = Booking(room, date, time, duration, name.trim())
                         notice = when {
                             day.isBefore(today) -> "Ўтган кунга брон қўйиб бўлмайди"
-                            minute < 960 || minute + duration > 1380 -> "Иш вақти 16:00–23:00"
+                            minute < earliest || minute + duration > latest -> "Иш вақти %02d:00–%02d:00".format(startHour, endHour)
                             name.isBlank() -> "Мижоз исмини киритинг"
                             name.length > 120 -> "Исм жуда узун"
                             else -> {
@@ -226,7 +233,12 @@ fun BanyaApp() {
                 }
             }
             2 -> {
-                Settings3D(online = online, status = status, modifier = Modifier.weight(1f))
+                Settings3D(online = online, status = status, modifier = Modifier.weight(1f),
+                    onHoursChanged = { start, end ->
+                        startHour = start
+                        endHour = end
+                        if (minute < start * 60 || minute >= end * 60) minute = start * 60
+                    })
             }
             3 -> {
                 Column(Modifier.weight(1f)) {
@@ -298,7 +310,7 @@ fun BanyaApp() {
                                                 else {
                                                     openForm(targetRoom = r)
                                                     day = occupancyDay
-                                                    minute = m.coerceIn(960, 22 * 60 + 30)
+                                                    minute = m.coerceIn(earliest, (latest - 30).coerceAtLeast(earliest))
                                                 }
                                             }, contentAlignment = Alignment.Center) {
                                             Text(if (existing == null) "✓" else "×",
