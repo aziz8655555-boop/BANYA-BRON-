@@ -29,7 +29,8 @@ class CloudBookings {
                         doc.getString("start") ?: return@runCatching null,
                         (doc.getLong("minutes") ?: return@runCatching null).toInt(),
                         doc.getString("name") ?: return@runCatching null,
-                        doc.getString("permanentId")
+                        doc.getString("permanentId"),
+                        doc.getString("phone") ?: ""
                     )
                 }.getOrNull()
             }.distinctBy { "${it.room}|${it.date}|${it.start}" }
@@ -57,6 +58,7 @@ class CloudBookings {
             "createdBy" to (FirebaseAuth.getInstance().currentUser?.uid ?: "")
         )
         (permanentId ?: b.permanentId)?.let { data["permanentId"] = it }
+        if (b.phone.isNotBlank()) data["phone"] = b.phone
         return data
     }
 
