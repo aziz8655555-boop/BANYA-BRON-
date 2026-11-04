@@ -3,6 +3,7 @@ package com.aziz.banya
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.MetadataChanges
 import java.time.LocalTime
 
 class CloudBookings {
@@ -10,7 +11,7 @@ class CloudBookings {
     private val slots = db.collection("booking_slots_v1")
 
     fun listen(onResult: (List<Booking>?, String?) -> Unit): ListenerRegistration =
-        slots.addSnapshotListener { snapshot, error ->
+        slots.addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
             if (error != null) {
                 onResult(null, "Сервер билан алоқа йўқ")
                 return@addSnapshotListener
