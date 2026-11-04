@@ -81,6 +81,49 @@ class CloudBookings {
             }
     }
 
+    /**
+     * Atomic reservation with a permanent financial identity.
+     * Activate only after booking_identity_v1 rules are published in Firebase.
+     * Existing reserve() remains unchanged for currently deployed clients.
+     */
+    fun reserveWithIdentity(
+        b: Booking,
+        callback: (Boolean, String, String?) -> Unit
+    ) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid == null) {
+            callback(false, "Тизимга киринг", null)
+            return
+        }
+        val refs = references(b)
+        val permanentId = newPermanentBookingId()
+        val identityRef = db.collection("booking_identity_v1").document(permanentId)
+        db.runTransaction { tx ->
+            // Firestore transactions require all reads before any writes.
+            val slotDocs = refs.map { tx.get(it) }
+            val identityDoc = tx.get(identityRef)
+            if (slotDocs.any { it.exists() } || identityDoc.exists()) {
+                throw IllegalStateException("SLOT_TAKEN")
+            }
+            val data = fields(b)
+            refs.forEach { tx.set(it, data) }
+            tx.set(identityRef, mapOf(
+                "slotBookingId" to slotBookingId(b),
+                "date" to b.date,
+                "room" to b.room,
+                "start" to b.start,
+                "createdAt" to com.google.firebase.firestore.FieldValue.serverTimestamp()
+            ))
+            true
+        }.addOnSuccessListener {
+            callback(true, "Брон ва доимий ID сақланди", permanentId)
+        }.addOnFailureListener { error ->
+            val msg = if (error.message?.contains("SLOT_TAKEN") == true)
+                "Бу вақт банд" else "Брон серверда тасдиқланмади"
+            callback(false, msg, null)
+        }
+    }
+
     fun delete(b: Booking, callback: (Boolean, String) -> Unit) {
         val refs = references(b)
         db.runTransaction { tx ->
