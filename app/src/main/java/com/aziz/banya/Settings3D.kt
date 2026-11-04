@@ -17,7 +17,8 @@ import com.google.firebase.auth.FirebaseAuth
 fun Settings3D(online: Boolean, status: String, modifier: Modifier = Modifier,
                onHoursChanged: (Int, Int) -> Unit = { _, _ -> },
                onTariffsChanged: (Int, Int, Int) -> Unit = { _, _, _ -> },
-               onRoomsChanged: (Int) -> Unit = {}) {
+               onRoomsChanged: (Int) -> Unit = {},
+               sharedSettings: SharedBanyaSettings? = null) {
     val gold = LuxGold
     val prefs = androidx.compose.ui.platform.LocalContext.current
         .getSharedPreferences("banya_settings", android.content.Context.MODE_PRIVATE)
@@ -33,6 +34,16 @@ fun Settings3D(online: Boolean, status: String, modifier: Modifier = Modifier,
     var roomCount by remember { mutableIntStateOf(prefs.getInt("roomCount", 6).coerceIn(1, 6)) }
     var startHour by remember { mutableIntStateOf(prefs.getInt("startHour", 16)) }
     var endHour by remember { mutableIntStateOf(prefs.getInt("endHour", 23)) }
+    LaunchedEffect(sharedSettings) {
+        sharedSettings?.let {
+            startHour = it.startHour
+            endHour = it.endHour
+            roomCount = it.roomCount
+            price60 = it.price60.toString()
+            price90 = it.price90.toString()
+            price120 = it.price120.toString()
+        }
+    }
     fun saveHours(start: Int, end: Int) {
         startHour = start
         endHour = end
