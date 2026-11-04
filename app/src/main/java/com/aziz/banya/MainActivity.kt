@@ -4,6 +4,12 @@ import android.os.Bundle
 import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.Manifest
+import android.os.Build
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.horizontalScroll
@@ -50,6 +56,16 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun BanyaApp() {
     val context = LocalContext.current
+    val notificationPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { }
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+                PackageManager.PERMISSION_GRANTED) {
+            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
     val prefs = remember(context) { context.getSharedPreferences("banya_settings", Context.MODE_PRIVATE) }
     var startHour by remember { mutableIntStateOf(prefs.getInt("startHour", 16)) }
     var endHour by remember { mutableIntStateOf(prefs.getInt("endHour", 23)) }
@@ -110,6 +126,7 @@ fun BanyaApp() {
             if (data != null) {
                 bookings.clear()
                 bookings.addAll(data)
+                BookingReminderScheduler.reconcile(context, data)
                 online = true
                 status = "Онлайн"
             } else {
