@@ -27,6 +27,13 @@ fun Settings3D(online: Boolean, status: String, modifier: Modifier = Modifier) {
     var price90 by remember { mutableStateOf(prefs.getInt("price90", 4500).toString()) }
     var price120 by remember { mutableStateOf(prefs.getInt("price120", 6000).toString()) }
     var editValue by remember { mutableStateOf("") }
+    var startHour by remember { mutableIntStateOf(prefs.getInt("startHour", 16)) }
+    var endHour by remember { mutableIntStateOf(prefs.getInt("endHour", 23)) }
+    fun saveHours(start: Int, end: Int) {
+        startHour = start
+        endHour = end
+        prefs.edit().putInt("startHour", start).putInt("endHour", end).apply()
+    }
     fun edit(key: String, value: String) { dialog = key; editValue = value }
     Column(modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(9.dp)) {
         LuxuryPanel(Modifier.fillMaxWidth()) {
@@ -34,7 +41,28 @@ fun Settings3D(online: Boolean, status: String, modifier: Modifier = Modifier) {
         }
         LuxuryPanel(Modifier.fillMaxWidth()) {
             Text("◷  Иш вақти", color = gold, fontSize = 19.sp, fontWeight = FontWeight.Bold)
-            Text("Бошланиш: 16:00     Тугаш: 23:00", color = Color.White, fontSize = 16.sp)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("Бошланиш", color = Color.White)
+                TextButton(onClick = { if (startHour > 0) saveHours(startHour - 1, endHour) }) {
+                    Text("−", color = gold, fontSize = 22.sp)
+                }
+                Text("%02d:00".format(startHour), color = gold, fontSize = 18.sp)
+                TextButton(onClick = { if (startHour + 1 < endHour) saveHours(startHour + 1, endHour) }) {
+                    Text("+", color = gold, fontSize = 22.sp)
+                }
+            }
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("Тугаш", color = Color.White)
+                TextButton(onClick = { if (endHour - 1 > startHour) saveHours(startHour, endHour - 1) }) {
+                    Text("−", color = gold, fontSize = 22.sp)
+                }
+                Text("%02d:00".format(endHour), color = gold, fontSize = 18.sp)
+                TextButton(onClick = { if (endHour < 24) saveHours(startHour, endHour + 1) }) {
+                    Text("+", color = gold, fontSize = 22.sp)
+                }
+            }
         }
         LuxuryPanel(Modifier.fillMaxWidth()) {
             Text("◉  Тарифлар (баня нархлари)", color = gold, fontSize = 18.sp, fontWeight = FontWeight.Bold)
