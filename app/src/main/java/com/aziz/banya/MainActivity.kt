@@ -119,22 +119,32 @@ fun BanyaApp() {
                     }
                     LuxuryPanel(Modifier.fillMaxWidth().padding(top = 5.dp)) {
                         Text("◷  Бошланиш вақти", color = LuxGold, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            SmallControl("−1 соат") {
-                                minute = (minute - 60).coerceAtLeast(16 * 60)
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                            Box(Modifier.weight(1f)) {
+                                SmallControl("−1 соат") {
+                                    minute = (minute - 60).coerceAtLeast(16 * 60)
+                                }
                             }
-                            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                                SmallControl("⌃") {
+                            Column(Modifier.weight(1.35f), horizontalAlignment = Alignment.CenterHorizontally) {
+                                SmallControl("▲") {
                                     minute = (minute + 30).coerceAtMost(22 * 60 + 30)
                                 }
-                                Text("%02d:%02d".format(minute / 60, minute % 60),
-                                    color = LuxGold, fontSize = 27.sp, fontWeight = FontWeight.Black)
-                                SmallControl("⌄") {
+                                Box(Modifier.fillMaxWidth()
+                                    .background(Color(0xFF061B30), RoundedCornerShape(10.dp))
+                                    .border(1.5.dp, LuxGold, RoundedCornerShape(10.dp))
+                                    .padding(vertical = 5.dp), contentAlignment = Alignment.Center) {
+                                    Text("%02d:%02d".format(minute / 60, minute % 60),
+                                        color = LuxGold, fontSize = 27.sp, fontWeight = FontWeight.Black)
+                                }
+                                SmallControl("▼") {
                                     minute = (minute - 30).coerceAtLeast(16 * 60)
                                 }
                             }
-                            SmallControl("+1 соат") {
-                                minute = (minute + 60).coerceAtMost(22 * 60 + 30)
+                            Box(Modifier.weight(1f)) {
+                                SmallControl("+1 соат") {
+                                    minute = (minute + 60).coerceAtMost(22 * 60 + 30)
+                                }
                             }
                         }
                     }
