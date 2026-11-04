@@ -5,6 +5,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.MetadataChanges
 import java.time.LocalTime
+import java.util.UUID
 
 class CloudBookings {
     private val db = FirebaseFirestore.getInstance()
@@ -46,7 +47,7 @@ class CloudBookings {
         slots.document("${b.date}_r${b.room}_$minute")
     }
 
-    private fun fields(b: Booking): Map<String, Any> {
+    private fun fields(b: Booking, permanentId: String? = null): Map<String, Any> {
         return mapOf(
             "bookingId" to slotBookingId(b),
             "room" to b.room, "date" to b.date,
@@ -55,6 +56,11 @@ class CloudBookings {
             "createdBy" to (FirebaseAuth.getInstance().currentUser?.uid ?: "")
         )
     }
+
+    // New bookings receive a permanent identity in a separate metadata document.
+    // Slot documents remain unchanged to preserve the deployed Firestore rules.
+    // Metadata must only be written after the corresponding security rules are deployed.
+    fun newPermanentBookingId(): String = UUID.randomUUID().toString()
 
     fun reserve(b: Booking, callback: (Boolean, String) -> Unit) {
         if (FirebaseAuth.getInstance().currentUser == null) {
