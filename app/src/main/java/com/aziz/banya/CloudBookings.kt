@@ -123,8 +123,16 @@ class CloudBookings {
         }.addOnSuccessListener {
             callback(true, "Брон ва доимий ID сақланди", permanentId)
         }.addOnFailureListener { error ->
-            val msg = if (error.message?.contains("SLOT_TAKEN") == true)
-                "Бу вақт банд" else "Брон серверда тасдиқланмади"
+            val msg = when {
+                error.message?.contains("SLOT_TAKEN") == true -> "Бу вақт банд"
+                error is com.google.firebase.firestore.FirebaseFirestoreException &&
+                    error.code == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED ->
+                    "Firebase рухсат бермади (PERMISSION_DENIED). Rules қоидаларини текширинг"
+                error is com.google.firebase.firestore.FirebaseFirestoreException &&
+                    error.code == com.google.firebase.firestore.FirebaseFirestoreException.Code.UNAVAILABLE ->
+                    "Серверга уланиб бўлмади. Интернетни текширинг"
+                else -> "Брон сақланмади: ${error.localizedMessage ?: "Номаълум хато"}"
+            }
             callback(false, msg, null)
         }
     }
