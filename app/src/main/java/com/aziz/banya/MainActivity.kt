@@ -42,7 +42,7 @@ data class Booking(val room: Int, val date: String, val start: String, val minut
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { AuthGate { BanyaApp() } }
+        setContent { AuthGate { DevicePinGate { BanyaApp() } } }
     }
 }
 
