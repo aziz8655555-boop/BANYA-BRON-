@@ -2,6 +2,8 @@ package com.aziz.banya
 
 import android.os.Bundle
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -41,7 +43,7 @@ private val red = Color(0xFFFF6D6D)
 private val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
 data class Booking(val room: Int, val date: String, val start: String, val minutes: Int, val name: String,
-                   val permanentId: String? = null) {
+                   val permanentId: String? = null, val phone: String = "") {
     val price get() = minutes * 50
     val end get() = LocalTime.parse(start).plusMinutes(minutes.toLong()).toString()
 }
@@ -101,6 +103,7 @@ fun BanyaApp() {
     var minute by remember { mutableIntStateOf(prefs.getInt("startHour", 16) * 60) }
     var duration by remember { mutableIntStateOf(60) }
     var name by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
     var editing by remember { mutableStateOf<Booking?>(null) }
     var deleting by remember { mutableStateOf<Booking?>(null) }
     var selectedBooking by remember { mutableStateOf<Booking?>(null) }
@@ -167,6 +170,7 @@ fun BanyaApp() {
         minute = b?.let { LocalTime.parse(it.start).toSecondOfDay() / 60 } ?: earliest
         duration = b?.minutes ?: 60
         name = b?.name ?: ""
+        phone = b?.phone ?: ""
         notice = ""
         page = 1
     }
@@ -234,6 +238,21 @@ fun BanyaApp() {
                                 focusedTextColor = Color.White, unfocusedTextColor = Color.White,
                                 focusedBorderColor = LuxGold, unfocusedBorderColor = LuxGold, cursorColor = LuxGold))
                     }
+                    LuxuryPanel(Modifier.fillMaxWidth().padding(top = 5.dp)) {
+                        Text("☎  Телефон (ихтиёрий)", color = LuxGold)
+                        OutlinedTextField(
+                            value = phone,
+                            onValueChange = { value ->
+                                if (value.length <= 20 &&
+                                    value.all { it.isDigit() || it == '+' || it == ' ' || it == '-' }) {
+                                    phone = value
+                                }
+                            },
+                            singleLine = true,
+                            placeholder = { Text("+7 ...", color = Color.LightGray) },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                     Text("⌛  Давомийлиги (вақт)", color = LuxGold, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 5.dp))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         listOf(Triple(60, "1 соат", "$price60 тг"),
@@ -260,7 +279,8 @@ fun BanyaApp() {
                     LuxuryButton(if (editing == null) "✓  Бронни сақлаш" else "✓  Ўзгаришни сақлаш", enabled = online && !busy, positive = true, modifier = Modifier.fillMaxWidth(), onClick = {
                         val date = day.format(fmt)
                         val time = "%02d:%02d".format(minute / 60, minute % 60)
-                        val proposed = Booking(room, date, time, duration, name.trim())
+                        val proposed = Booking(room, date, time, duration, name.trim(),
+                            editing?.permanentId, phone.trim())
                         notice = when {
                             room !in 1..roomCount -> "Хона рақами нотўғри"
                             day.isBefore(today) -> "Ўтган кунга брон қўйиб бўлмайди"
@@ -273,7 +293,7 @@ fun BanyaApp() {
                                 val cb: (Boolean, String) -> Unit = { ok, msg ->
                                     busy = false
                                     notice = msg
-                                    if (ok) { editing = null; name = "" }
+                                    if (ok) { editing = null; name = ""; phone = "" }
                                 }
                                 if (previous == null) {
                                     cloud.reserveWithIdentity(proposed) { ok, msg, permanentId ->
@@ -452,6 +472,15 @@ LuxuryNav(if (page == 3) 0 else page) { i -> if (i == 1) openForm() else page = 
                     Text("♨  ${b.room}-хона  •  ${b.date}",
                         color = LuxGold, fontWeight = FontWeight.Bold, fontSize = 17.sp)
                     Text("Мижоз: ${b.name}", color = Color.White, fontSize = 16.sp)
+                    if (b.phone.isNotBlank()) {
+                        TextButton(onClick = {
+                            val dial = Intent(Intent.ACTION_DIAL,
+                                Uri.parse("tel:" + Uri.encode(b.phone.filter { it.isDigit() || it == '+' })))
+                            context.startActivity(dial)
+                        }) {
+                            Text("☎ Қўнғироқ: ${b.phone}", color = LuxGreen)
+                        }
+                    }
                     Text("Вақт: ${b.start}–${b.end}", color = Color.White, fontSize = 16.sp)
                     Text("Давомийлиги: ${b.minutes} дақиқа", color = Color.White, fontSize = 15.sp)
                     Text("Нарх: ${tariff(b.minutes)} тг",
