@@ -65,6 +65,16 @@ fun BanyaApp() {
     val earliest = startHour * 60
     val latest = endHour * 60
     val cloud = remember { CloudBookings() }
+    val cloudSettings = remember { CloudSettings() }
+    var sharedSettings by remember { mutableStateOf<SharedBanyaSettings?>(null) }
+    var settingsError by remember { mutableStateOf("") }
+    fun saveSharedSettings(start: Int = startHour, end: Int = endHour,
+                           rooms: Int = roomCount, p60: Int = price60,
+                           p90: Int = price90, p120: Int = price120) {
+        cloudSettings.save(SharedBanyaSettings(start, end, rooms, p60, p90, p120)) { ok, message ->
+            settingsError = if (ok) "" else message
+        }
+    }
     val bookings = remember { mutableStateListOf<Booking>() }
     var online by remember { mutableStateOf(false) }
     var status by remember { mutableStateOf("Серверга уланмоқда") }
@@ -97,6 +107,29 @@ fun BanyaApp() {
                 online = false
                 status = error ?: "Сервер кутилмоқда"
             }
+        }
+        onDispose { listener.remove() }
+    }
+
+    DisposableEffect(cloudSettings) {
+        val listener = cloudSettings.listen { data, error ->
+            if (data != null) {
+                sharedSettings = data
+                startHour = data.startHour
+                endHour = data.endHour
+                roomCount = data.roomCount
+                price60 = data.price60
+                price90 = data.price90
+                price120 = data.price120
+                prefs.edit()
+                    .putInt("startHour", data.startHour)
+                    .putInt("endHour", data.endHour)
+                    .putInt("roomCount", data.roomCount)
+                    .putInt("price60", data.price60)
+                    .putInt("price90", data.price90)
+                    .putInt("price120", data.price120).apply()
+            }
+            if (error != null) settingsError = error
         }
         onDispose { listener.remove() }
     }
@@ -249,16 +282,23 @@ fun BanyaApp() {
                         startHour = start
                         endHour = end
                         if (minute < start * 60 || minute >= end * 60) minute = start * 60
+                        saveSharedSettings(start = start, end = end)
                     },
                     onTariffsChanged = { p60, p90, p120 ->
                         price60 = p60
                         price90 = p90
                         price120 = p120
+                        saveSharedSettings(p60 = p60, p90 = p90, p120 = p120)
                     },
                     onRoomsChanged = { count ->
                         roomCount = count
                         if (room > count) room = count
-                    })
+                        saveSharedSettings(rooms = count)
+                    },
+                    sharedSettings = sharedSettings)
+                if (settingsError.isNotBlank()) {
+                    Text(settingsError, color = LuxRed, fontSize = 12.sp)
+                }
             }
             3 -> {
                 Column(Modifier.weight(1f)) {
