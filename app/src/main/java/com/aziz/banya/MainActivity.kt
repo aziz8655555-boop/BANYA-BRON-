@@ -34,7 +34,8 @@ private val green = Color(0xFF4BD58B)
 private val red = Color(0xFFFF6D6D)
 private val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-data class Booking(val room: Int, val date: String, val start: String, val minutes: Int, val name: String) {
+data class Booking(val room: Int, val date: String, val start: String, val minutes: Int, val name: String,
+                   val permanentId: String? = null) {
     val price get() = minutes * 50
     val end get() = LocalTime.parse(start).plusMinutes(minutes.toLong()).toString()
 }
