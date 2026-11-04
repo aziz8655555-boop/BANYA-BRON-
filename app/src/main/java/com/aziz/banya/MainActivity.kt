@@ -251,8 +251,11 @@ fun BanyaApp() {
                                     notice = msg
                                     if (ok) { editing = null; name = "" }
                                 }
-                                if (previous == null) cloud.reserve(proposed, cb)
-                                else cloud.edit(previous, proposed, cb)
+                                if (previous == null) {
+                                    cloud.reserveWithIdentity(proposed) { ok, msg, permanentId ->
+                                        cb(ok, msg)
+                                    }
+                                } else cloud.edit(previous, proposed, cb)
                                 "Сервер тасдиғи кутилмоқда..."
                             }
                         }
