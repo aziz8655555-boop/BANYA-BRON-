@@ -289,6 +289,7 @@ fun BanyaApp() {
                 }
             }
             2 -> {
+                SmallControl("◉ Кунлик даромад ҳисоботи") { page = 4 }
                 Settings3D(online = online, status = status, modifier = Modifier.weight(1f),
                     onHoursChanged = { start, end ->
                         startHour = start
@@ -310,6 +311,12 @@ fun BanyaApp() {
                     sharedSettings = sharedSettings)
                 if (settingsError.isNotBlank()) {
                     Text(settingsError, color = LuxRed, fontSize = 12.sp)
+                }
+            }
+            4 -> {
+                Column(Modifier.weight(1f)) {
+                    DailyRevenueReport()
+                    SmallControl("← Созламаларга қайтиш") { page = 2 }
                 }
             }
             3 -> {
