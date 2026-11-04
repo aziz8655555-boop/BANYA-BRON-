@@ -398,28 +398,46 @@ LuxuryNav(if (page == 3) 0 else page) { i -> if (i == 1) openForm() else page = 
     }
 
     selectedBooking?.let { b ->
-        AlertDialog(onDismissRequest = { selectedBooking = null },
-            title = { Text("Брон маълумоти", color = LuxGold) },
+        AlertDialog(
+            onDismissRequest = { selectedBooking = null },
+            shape = RoundedCornerShape(22.dp),
+            containerColor = Color(0xFF061525),
+            titleContentColor = LuxGold,
+            textContentColor = Color.White,
+            title = {
+                Text("♛  Брон маълумоти", color = LuxGold,
+                    fontSize = 23.sp, fontWeight = FontWeight.Black)
+            },
             text = {
-                Column {
-                    Text("${b.room}-хона • ${b.date}")
-                    Text("Мижоз: ${b.name}")
-                    Text("Вақт: ${b.start}–${b.end}")
-                    Text("Давомийлиги: ${b.minutes} дақиқа")
-                    Text("Нарх: ${tariff(b.minutes)} тг")
+                Column(Modifier.fillMaxWidth()
+                    .border(1.5.dp, LuxGold, RoundedCornerShape(14.dp))
+                    .background(Color(0xFF082846), RoundedCornerShape(14.dp))
+                    .padding(14.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                    Text("♨  ${b.room}-хона  •  ${b.date}",
+                        color = LuxGold, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                    Text("Мижоз: ${b.name}", color = Color.White, fontSize = 16.sp)
+                    Text("Вақт: ${b.start}–${b.end}", color = Color.White, fontSize = 16.sp)
+                    Text("Давомийлиги: ${b.minutes} дақиқа", color = Color.White, fontSize = 15.sp)
+                    Text("Нарх: ${tariff(b.minutes)} тг",
+                        color = LuxGold, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
             },
             confirmButton = {
                 TextButton(onClick = { selectedBooking = null; openForm(b) }) {
-                    Text("Таҳрирлаш")
+                    Text("Таҳрирлаш", color = LuxGold, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 Row {
-                    TextButton(onClick = { selectedBooking = null; deleting = b }) { Text("Ўчириш") }
-                    TextButton(onClick = { selectedBooking = null }) { Text("Ёпиш") }
+                    TextButton(onClick = { selectedBooking = null; deleting = b }) {
+                        Text("Ўчириш", color = LuxRed, fontWeight = FontWeight.Bold)
+                    }
+                    TextButton(onClick = { selectedBooking = null }) {
+                        Text("Ёпиш", color = Color.White)
+                    }
                 }
-            })
+            }
+        )
     }
     deleting?.let { b ->
         AlertDialog(onDismissRequest = { if (!busy) deleting = null },
