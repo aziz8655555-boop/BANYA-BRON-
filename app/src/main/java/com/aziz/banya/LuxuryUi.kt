@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -47,9 +48,10 @@ fun WoodBackground(content: @Composable BoxScope.() -> Unit) {
 @Composable
 fun LuxuryPanel(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     Column(
-        modifier.clip(RoundedCornerShape(18.dp))
+        modifier.shadow(7.dp, RoundedCornerShape(18.dp), ambientColor = LuxGold, spotColor = LuxGold)
+            .clip(RoundedCornerShape(18.dp))
             .background(Brush.verticalGradient(listOf(Color(0xFF08385D), Color(0xFF000A18), Color(0xFF00101E))))
-            .border(1.5.dp, GoldBrush, RoundedCornerShape(18.dp))
+            .border(2.dp, GoldBrush, RoundedCornerShape(18.dp))
             .padding(12.dp),
         content = content
     )
@@ -63,7 +65,9 @@ fun LuxuryButton(title: String, onClick: () -> Unit, modifier: Modifier = Modifi
         positive -> Brush.verticalGradient(listOf(Color(0xFF72FF70), Color(0xFF159C1D), Color(0xFF086412)))
         else -> GoldBrush
     }
-    Box(modifier.height(49.dp).clip(RoundedCornerShape(16.dp))
+    Box(modifier.height(49.dp)
+        .shadow(5.dp, RoundedCornerShape(16.dp), ambientColor = LuxGold, spotColor = LuxGold)
+        .clip(RoundedCornerShape(16.dp))
         .background(if (enabled) brush else Brush.verticalGradient(listOf(Color.DarkGray, Color.Gray)))
         .border(1.dp, if (enabled) LuxGold else Color.Gray, RoundedCornerShape(16.dp))
         .clickable(enabled = enabled, onClick = onClick),
@@ -77,8 +81,8 @@ fun LuxuryButton(title: String, onClick: () -> Unit, modifier: Modifier = Modifi
 fun LuxuryHeader(online: Boolean, status: String) {
     Column(Modifier.fillMaxWidth().padding(top = 9.dp, bottom = 14.dp),
         horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("♛", fontSize = 36.sp, color = LuxGold, lineHeight = 38.sp)
-        Text("БАНЯ БРОН", color = LuxGold, fontSize = 29.sp, fontWeight = FontWeight.Black)
+        Text("♛", fontSize = 40.sp, color = LuxGold, lineHeight = 42.sp)
+        Text("БАНЯ БРОН", color = LuxGold, fontSize = 31.sp, fontWeight = FontWeight.Black)
         Text("16:00 – 23:00  •  " + status, color = if (online) LuxGreen else Color(0xFFFFCC82),
             fontSize = 13.sp, textAlign = TextAlign.Center)
     }
