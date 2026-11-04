@@ -105,12 +105,15 @@ fun BanyaApp() {
                         Text(if (editing == null) "▦  Брон қилиш" else "✎  Бронни таҳрирлаш",
                             color = LuxGold, fontSize = 23.sp, fontWeight = FontWeight.Bold)
                     }
-                    Text("♨  Хона", color = LuxGold, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 5.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("♨  Хона (хонани танланг)", color = LuxGold, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 5.dp))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         (1..6).forEach { r ->
-                            OutlinedButton(onClick = { room = r }, contentPadding = PaddingValues(8.dp),
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = if (room == r) gold else Color.White)) {
-                                Text("$r")
+                            Box(Modifier.weight(1f).height(48.dp)
+                                .background(if (room == r) LuxGold else Color(0xFF082846), RoundedCornerShape(12.dp))
+                                .border(1.5.dp, LuxGold, RoundedCornerShape(12.dp))
+                                .clickable { room = r }, contentAlignment = Alignment.Center) {
+                                Text("$r", color = if (room == r) Color.Black else Color.White,
+                                    fontSize = 21.sp, fontWeight = FontWeight.Black)
                             }
                         }
                     }
