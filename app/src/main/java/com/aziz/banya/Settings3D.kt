@@ -14,7 +14,8 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun Settings3D(online: Boolean, status: String, modifier: Modifier = Modifier) {
+fun Settings3D(online: Boolean, status: String, modifier: Modifier = Modifier,
+               onHoursChanged: (Int, Int) -> Unit = { _, _ -> }) {
     val gold = LuxGold
     val prefs = androidx.compose.ui.platform.LocalContext.current
         .getSharedPreferences("banya_settings", android.content.Context.MODE_PRIVATE)
@@ -33,6 +34,7 @@ fun Settings3D(online: Boolean, status: String, modifier: Modifier = Modifier) {
         startHour = start
         endHour = end
         prefs.edit().putInt("startHour", start).putInt("endHour", end).apply()
+        onHoursChanged(start, end)
     }
     fun edit(key: String, value: String) { dialog = key; editValue = value }
     Column(modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(9.dp)) {
