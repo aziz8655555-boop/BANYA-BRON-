@@ -15,7 +15,8 @@ import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun Settings3D(online: Boolean, status: String, modifier: Modifier = Modifier,
-               onHoursChanged: (Int, Int) -> Unit = { _, _ -> }) {
+               onHoursChanged: (Int, Int) -> Unit = { _, _ -> },
+               onTariffsChanged: (Int, Int, Int) -> Unit = { _, _, _ -> }) {
     val gold = LuxGold
     val prefs = androidx.compose.ui.platform.LocalContext.current
         .getSharedPreferences("banya_settings", android.content.Context.MODE_PRIVATE)
@@ -126,6 +127,7 @@ fun Settings3D(online: Boolean, status: String, modifier: Modifier = Modifier,
             if (n != null && n >= 0) {
                 prefs.edit().putInt(dialog,n).apply()
                 when(dialog) { "price60"->price60=n.toString(); "price90"->price90=n.toString(); "price120"->price120=n.toString() }
+                onTariffsChanged(price60.toInt(), price90.toInt(), price120.toInt())
             } else info="Нарх нотўғри киритилди"
             dialog=""
         }) { Text("Сақлаш") } },
