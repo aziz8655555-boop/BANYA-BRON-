@@ -7,6 +7,9 @@ import android.util.Base64
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -108,8 +111,8 @@ fun DevicePinGate(content: @Composable () -> Unit) {
         Column(Modifier.fillMaxSize().padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center) {
-            Text("♛", color = LuxGold, fontSize = 55.sp)
-            Text("БАНЯ БРОН", color = LuxGold, fontSize = 30.sp,
+            Text("♛", color = LuxGold, fontSize = 64.sp)
+            Text("БАНЯ БРОН", color = LuxGold, fontSize = 33.sp,
                 fontWeight = FontWeight.Black)
             Spacer(Modifier.height(22.dp))
             LuxuryPanel(Modifier.fillMaxWidth()) {
@@ -120,7 +123,7 @@ fun DevicePinGate(content: @Composable () -> Unit) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                     repeat(4) { index ->
                         Text(if (index < pin.length) "●" else "○",
-                            color = LuxGold, fontSize = 31.sp,
+                            color = LuxGold, fontSize = 34.sp,
                             modifier = Modifier.padding(horizontal = 9.dp))
                     }
                 }
@@ -132,15 +135,25 @@ fun DevicePinGate(content: @Composable () -> Unit) {
                             if (digit.isEmpty()) {
                                 Spacer(Modifier.weight(1f).height(60.dp))
                             } else {
-                                Box(Modifier.weight(1f).height(60.dp)
-                                    .background(Color(0xFF092C4B), RoundedCornerShape(13.dp))
-                                    .border(1.5.dp, LuxGold, RoundedCornerShape(13.dp))
-                                    .clickable {
-                                        if (digit == "⌫") pin = pin.dropLast(1)
-                                        else if (pin.length < 4) pin += digit
-                                    }, contentAlignment = Alignment.Center) {
-                                    Text(digit, color = LuxGold, fontSize = 27.sp,
-                                        fontWeight = FontWeight.Bold)
+                                Box(Modifier.weight(1f).height(72.dp), contentAlignment = Alignment.Center) {
+                                    Box(Modifier.size(68.dp)
+                                        .shadow(7.dp, CircleShape,
+                                            ambientColor = LuxGold, spotColor = LuxGold)
+                                        .background(
+                                            Brush.verticalGradient(
+                                                if (digit == "⌫") listOf(
+                                                    Color(0xFFFF6B5A), Color(0xFFB50000), Color(0xFF610000))
+                                                else listOf(
+                                                    Color(0xFF136B9A), Color(0xFF063557), Color(0xFF010F20))
+                                            ), CircleShape)
+                                        .border(2.5.dp, LuxGold, CircleShape)
+                                        .clickable {
+                                            if (digit == "⌫") pin = pin.dropLast(1)
+                                            else if (pin.length < 4) pin += digit
+                                        }, contentAlignment = Alignment.Center) {
+                                        Text(digit, color = Color.White, fontSize = 29.sp,
+                                            fontWeight = FontWeight.Black)
+                                    }
                                 }
                             }
                         }
