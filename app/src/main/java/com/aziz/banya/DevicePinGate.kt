@@ -1,7 +1,8 @@
 package com.aziz.banya
 
 import android.content.Context
-import android.os.SystemClock
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.EmailAuthProvider
 import android.util.Base64
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -37,7 +38,10 @@ fun DevicePinGate(content: @Composable () -> Unit) {
     var confirm by remember { mutableStateOf("") }
     var setupStep by remember { mutableIntStateOf(0) }
     var attempts by remember { mutableIntStateOf(0) }
-    var lockedUntil by remember { mutableLongStateOf(0L) }
+    var lockedUntil by remember { mutableLongStateOf(prefs.getLong("lockedUntil", 0L)) }
+    var resetDialog by remember { mutableStateOf(false) }
+    var resetPassword by remember { mutableStateOf("") }
+    var resetting by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf("") }
     val configured = prefs.contains("hash") && prefs.contains("salt")
 
@@ -92,7 +96,7 @@ fun DevicePinGate(content: @Composable () -> Unit) {
                             confirm = ""
                             unlocked = true
                         }
-                    } else if (SystemClock.elapsedRealtime() < lockedUntil) {
+                    } else if (System.currentTimeMillis() < lockedUntil) {
                         message = "Кейинроқ қайта уриниб кўринг"
                         pin = ""
                     } else {
@@ -100,19 +104,27 @@ fun DevicePinGate(content: @Composable () -> Unit) {
                         val expected = Base64.decode(prefs.getString("hash", ""), Base64.NO_WRAP)
                         if (MessageDigest.isEqual(pinDigest(pin, salt), expected)) {
                             attempts = 0
+                            lockedUntil = 0L
+                            prefs.edit().remove("lockedUntil").apply()
                             pin = ""
                             unlocked = true
                         } else {
                             attempts++
                             pin = ""
                             if (attempts >= 5) {
-                                lockedUntil = SystemClock.elapsedRealtime() + 60000L
+                                lockedUntil = System.currentTimeMillis() + 60000L
+                                prefs.edit().putLong("lockedUntil", lockedUntil).apply()
                                 attempts = 0
                                 message = "5 марта хато. 1 дақиқадан кейин урининг"
                             } else message = "PIN нотўғри. Қолган уринишлар: ${5 - attempts}"
                         }
                     }
                 })
+                if (configured) {
+                    TextButton(onClick = { resetDialog = true }) {
+                        Text("PIN-кодни унутдим", color = LuxGold)
+                    }
+                }
                 if (message.isNotEmpty()) {
                     Spacer(Modifier.height(10.dp))
                     Text(message, color = Color(0xFFFF8080))
@@ -120,4 +132,59 @@ fun DevicePinGate(content: @Composable () -> Unit) {
             }
         }
     }
+    if (resetDialog) {
+        AlertDialog(
+            onDismissRequest = { if (!resetting) resetDialog = false },
+            title = { Text("PIN-кодни тиклаш") },
+            text = {
+                Column {
+                    Text("Firebase аккаунтингиз паролини киритинг.")
+                    OutlinedTextField(
+                        value = resetPassword,
+                        onValueChange = { resetPassword = it },
+                        visualTransformation = PasswordVisualTransformation(),
+                        singleLine = true,
+                        label = { Text("Аккаунт пароли") }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(enabled = !resetting && resetPassword.isNotBlank(), onClick = {
+                    val user = FirebaseAuth.getInstance().currentUser
+                    val email = user?.email
+                    if (user == null || email.isNullOrBlank()) {
+                        message = "Аккаунт маълумоти топилмади"
+                    } else {
+                        resetting = true
+                        user.reauthenticate(
+                            EmailAuthProvider.getCredential(email, resetPassword)
+                        ).addOnCompleteListener { task ->
+                            resetting = false
+                            resetPassword = ""
+                            if (task.isSuccessful) {
+                                prefs.edit().remove("hash").remove("salt")
+                                    .remove("lockedUntil").apply()
+                                lockedUntil = 0L
+                                attempts = 0
+                                setupStep = 0
+                                pin = ""
+                                confirm = ""
+                                message = "Янги PIN-код ўрнатинг"
+                                resetDialog = false
+                            } else {
+                                message = "Парол текширилмади. Интернет ва паролни текширинг"
+                            }
+                        }
+                    }
+                }) { Text("Тасдиқлаш") }
+            },
+            dismissButton = {
+                TextButton(enabled = !resetting, onClick = {
+                    resetPassword = ""
+                    resetDialog = false
+                }) { Text("Бекор қилиш") }
+            }
+        )
+    }
+
 }
