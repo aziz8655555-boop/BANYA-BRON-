@@ -90,6 +90,12 @@ fun BanyaApp() {
     var selectedBooking by remember { mutableStateOf<Booking?>(null) }
     var paymentBooking by remember { mutableStateOf<Booking?>(null) }
     var paymentMethod by remember { mutableStateOf("kaspi") }
+    val paymentLedger = remember { PaymentLedger() }
+    var paymentBusy by remember { mutableStateOf(false) }
+    var paymentMessage by remember { mutableStateOf("") }
+    var paymentReceipts by remember { mutableStateOf<List<PaymentReceipt>>(emptyList()) }
+    var paymentRecordsReady by remember { mutableStateOf(false) }
+
     var occupancyDay by remember { mutableStateOf(LocalDate.now()) }
     var busy by remember { mutableStateOf(false) }
     var notice by remember { mutableStateOf("") }
@@ -450,6 +456,24 @@ LuxuryNav(if (page == 3) 0 else page) { i -> if (i == 1) openForm() else page = 
             }
         )
     }
+    val paymentDate = paymentBooking?.date
+    DisposableEffect(paymentDate, paymentLedger) {
+        paymentRecordsReady = false
+        paymentReceipts = emptyList()
+        val listener = if (paymentDate != null) {
+            paymentLedger.listenForDate(paymentDate) { records, error ->
+                if (records != null) {
+                    paymentReceipts = records
+                    paymentRecordsReady = true
+                } else {
+                    paymentRecordsReady = false
+                    if (error != null) paymentMessage = error
+                }
+            }
+        } else null
+        onDispose { listener?.remove() }
+    }
+
     paymentBooking?.let { b ->
         AlertDialog(
             onDismissRequest = { paymentBooking = null },
@@ -470,13 +494,42 @@ LuxuryNav(if (page == 3) 0 else page) { i -> if (i == 1) openForm() else page = 
                                 modifier = Modifier.clickable { paymentMethod = key })
                         }
                     }
-                    Text("Сақлаш Firebase рухсатлари тайёр бўлгач фаоллашади.",
-                        color = LuxGold, fontSize = 12.sp)
+                    val receipt = paymentReceipts.firstOrNull { it.bookingId == b.permanentId }
+                    Text(
+                        when {
+                            b.permanentId == null -> "Эски брон: доимий ID йўқ. Тўловни сақлаш мумкин эмас."
+                            !paymentRecordsReady -> "Тўлов ҳолати сервердан текширилмоқда"
+                            receipt != null -> "Тўланган: ${receipt.amountKzt} тг"
+                            else -> "Тўланмаган"
+                        },
+                        color = if (receipt != null) LuxGreen else LuxGold,
+                        fontSize = 13.sp
+                    )
+                    if (paymentMessage.isNotBlank()) {
+                        Text(paymentMessage, color = LuxGold, fontSize = 12.sp)
+                    }
                 }
             },
             confirmButton = {
-                TextButton(enabled = false, onClick = {}) {
-                    Text("Тўловни сақлаш")
+                val paid = paymentReceipts.any { it.bookingId == b.permanentId }
+                TextButton(
+                    enabled = b.permanentId != null && paymentRecordsReady && !paid &&
+                        !paymentBusy && online,
+                    onClick = {
+                        val id = b.permanentId ?: return@TextButton
+                        paymentBusy = true
+                        paymentMessage = ""
+                        paymentLedger.recordFullBookingPayment(
+                            id, tariff(b.minutes), paymentMethod
+                        ) { ok, msg ->
+                            paymentBusy = false
+                            paymentMessage = msg
+                            if (ok) paymentBooking = null
+                        }
+                    }
+                ) {
+                    Text(if (paymentBusy) "Сақланмоқда..." else "Тўловни сақлаш",
+                        color = LuxGold)
                 }
             },
             dismissButton = {
