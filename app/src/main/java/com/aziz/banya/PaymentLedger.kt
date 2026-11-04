@@ -65,6 +65,66 @@ class PaymentLedger {
         }.addOnFailureListener { callback(false, "Тўлов сақланмади") }
     }
 
+    /**
+     * Record at most one full payment for a permanent booking identity.
+     * The identity document is read inside the same transaction, so callers
+     * cannot accidentally attach a payment to an unrelated slot ID.
+     * Not yet called by the UI: the active booking UUID must first be
+     * carried from Firestore to the booking details screen.
+     */
+    fun recordFullBookingPayment(
+        permanentBookingId: String,
+        amountKzt: Int,
+        method: String,
+        callback: (Boolean, String) -> Unit
+    ) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid == null ||
+            !permanentBookingId.matches(
+                Regex("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
+            ) ||
+            amountKzt <= 0 || amountKzt > 10000000 ||
+            method !in setOf("cash", "kaspi", "card")) {
+            callback(false, "Тўлов маълумотлари нотўғри")
+            return
+        }
+
+        val db = FirebaseFirestore.getInstance()
+        val identityRef = db.collection("booking_identity_v1").document(permanentBookingId)
+        // The receipt document ID is the permanent booking UUID.
+        // Therefore a repeated payment cannot create a second receipt.
+        val receiptRef = collection.document(permanentBookingId)
+        db.runTransaction { tx ->
+            val identity = tx.get(identityRef)
+            val receipt = tx.get(receiptRef)
+            if (!identity.exists()) throw IllegalStateException("IDENTITY_NOT_FOUND")
+            if (receipt.exists()) return@runTransaction false
+
+            val date = identity.getString("date")
+                ?: throw IllegalStateException("INVALID_IDENTITY")
+            val room = identity.getLong("room")?.toInt()
+                ?: throw IllegalStateException("INVALID_IDENTITY")
+            if (room !in 1..6) throw IllegalStateException("INVALID_IDENTITY")
+
+            tx.set(receiptRef, mapOf(
+                "bookingId" to permanentBookingId,
+                "date" to date,
+                "room" to room,
+                "amountKzt" to amountKzt,
+                "method" to method,
+                "recordedBy" to uid,
+                "createdAt" to FieldValue.serverTimestamp()
+            ))
+            true
+        }.addOnSuccessListener { created ->
+            callback(created, if (created) "Тўлов ҳисоботга сақланди"
+                else "Бу брон учун тўлов аввал сақланган")
+        }.addOnFailureListener { error ->
+            callback(false, if (error.message?.contains("IDENTITY_NOT_FOUND") == true)
+                "Брон идентификатори топилмади" else "Тўлов сақланмади")
+        }
+    }
+
     fun listenForDate(date: String, onResult: (List<PaymentReceipt>?, String?) -> Unit): ListenerRegistration =
         collection.whereEqualTo("date", date).addSnapshotListener { snapshot, error ->
             if (error != null) {
