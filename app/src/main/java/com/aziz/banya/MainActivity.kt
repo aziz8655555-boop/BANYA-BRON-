@@ -149,11 +149,21 @@ fun BanyaApp() {
                                 focusedBorderColor = LuxGold, unfocusedBorderColor = LuxGold, cursorColor = LuxGold))
                     }
                     Text("⌛  Давомийлиги (вақт)", color = LuxGold, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 5.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                        listOf(60 to "1 соат", 90 to "1,5 соат", 120 to "2 соат").forEach { (m, title) ->
-                            OutlinedButton(onClick = { duration = m }, contentPadding = PaddingValues(8.dp),
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = if (m == duration) gold else Color.White)) {
-                                Text(title, fontSize = 12.sp)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf(Triple(60, "1 соат", "3 000 тг"),
+                            Triple(90, "1,5 соат", "4 500 тг"),
+                            Triple(120, "2 соат", "6 000 тг")).forEach { (m, title, price) ->
+                            Column(Modifier.weight(1f).height(66.dp)
+                                .background(if (duration == m) LuxGold else Color(0xFF082846),
+                                    RoundedCornerShape(12.dp))
+                                .border(1.5.dp, LuxGold, RoundedCornerShape(12.dp))
+                                .clickable { duration = m }.padding(4.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center) {
+                                Text(title, color = if (duration == m) Color.Black else Color.White,
+                                    fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Text(price, color = if (duration == m) Color.Black else LuxGold,
+                                    fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
